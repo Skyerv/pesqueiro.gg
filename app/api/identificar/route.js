@@ -30,7 +30,9 @@ export async function POST(request) {
     return NextResponse.json(await identifyFish(file.type, data));
   } catch (err) {
     // "limite": acabou a cota (no plano gratuito do Gemini, por minuto ou por dia)
-    const limit = err.message === "limite";
-    return NextResponse.json({ error: limit ? "limite" : "falha" }, { status: limit ? 429 : 502 });
+    // "ocupado": o provedor está sobrecarregado agora
+    if (err.message === "limite") return NextResponse.json({ error: "limite" }, { status: 429 });
+    if (err.message === "ocupado") return NextResponse.json({ error: "ocupado" }, { status: 503 });
+    return NextResponse.json({ error: "falha" }, { status: 502 });
   }
 }

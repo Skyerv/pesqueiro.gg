@@ -51,7 +51,12 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
       fd.append("image", new File([blob], "foto", { type }));
       const res = await fetch("/api/identificar", { method: "POST", body: fd });
       if (run !== aiRun.current) return;
-      if (res.status === 503) return setAi(null); // IA não configurada: some sem alarde
+      if (res.status === 503) {
+        const { error } = await res.json().catch(() => ({}));
+        if (run !== aiRun.current) return;
+        // "ocupado": a IA está sobrecarregada; qualquer outro 503 é IA não configurada (some sem alarde)
+        return setAi(error === "ocupado" ? { state: "busy" } : null);
+      }
       if (res.status === 429) return setAi({ state: "limit" });
       if (!res.ok) throw new Error();
       const result = await res.json();
@@ -174,6 +179,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
           {ai.state === "error" && <p>Não deu para analisar a foto agora. Escolha a espécie abaixo.</p>}
           {ai.state === "nofish" && <p>A IA não encontrou um peixe nessa foto. Escolha a espécie abaixo.</p>}
           {ai.state === "limit" && <p>A IA atingiu o limite de análises por agora. Escolha a espécie abaixo ou tente mais tarde.</p>}
+          {ai.state === "busy" && <p>A IA está sobrecarregada agora. Escolha a espécie abaixo ou tente de novo em alguns minutos.</p>}
           {ai.state === "done" && r && (
             <>
               <p>

@@ -79,7 +79,7 @@ Dá para usar uma de duas IAs (configure só uma):
 1. Entre em https://aistudio.google.com/apikey com uma conta Google e clique em **Create API key**.
 2. Na Vercel, em **Settings > Environment Variables**, adicione `GEMINI_API_KEY` com a chave e faça **Redeploy**.
 
-O modelo padrão é o Gemini 3.5 Flash-Lite. No plano gratuito não há cobrança, mas há um limite de análises por minuto e por dia (veja em https://aistudio.google.com/rate-limit). Quando o limite acaba, o site avisa e a pessoa escolhe a espécie na mão. Atenção: no plano gratuito, o Google pode usar as fotos enviadas para melhorar os produtos dele (https://ai.google.dev/gemini-api/terms).
+O modelo padrão é o Gemini 3.5 Flash-Lite. No plano gratuito não há cobrança, mas há um limite de análises por minuto e por dia (veja em https://aistudio.google.com/rate-limit). Os modelos gratuitos às vezes ficam sobrecarregados: o site tenta de novo e, se precisar, usa os modelos reserva `gemini-3.1-flash-lite` e `gemini-3.5-flash` (dá para mudar em `GEMINI_FALLBACK_MODELS`). Se nenhum responder, ou quando o limite acaba, o site avisa e a pessoa escolhe a espécie na mão. Atenção: no plano gratuito, o Google pode usar as fotos enviadas para melhorar os produtos dele (https://ai.google.dev/gemini-api/terms).
 
 **Claude, da Anthropic (pago por uso)**
 
