@@ -7,6 +7,7 @@ const LINKS = [
   { href: "/", label: "Ranking" },
   { href: "/mural", label: "Mural" },
   { href: "/especies", label: "Espécies" },
+  { href: "/sugestoes", label: "Sugestões" },
 ];
 
 export default function Nav() {

@@ -79,6 +79,17 @@ O modelo padrão é o Claude Haiku 4.5, o mais barato, e cada foto analisada cus
 
 A análise só roda para quem está logado. A IA acerta bem espécies comuns em fotos nítidas com o peixe inteiro de lado, e erra mais com peixes parecidos entre si, fotos escuras ou com o peixe coberto pela mão.
 
+## Passo 6 (opcional): aba Sugestões ligada ao GitHub
+
+Na aba **Sugestões**, quem está logado manda ideias e problemas. Cada sugestão vira uma *issue* no repositório, com a etiqueta `sugestão`, e a aba mostra o andamento: **Na fila** (issue aberta), **Feita** (fechada como concluída) ou **Descartada** (fechada como "not planned"). Cada pessoa pode mandar até 5 por dia.
+
+1. No GitHub, vá em **Settings > Developer settings > Personal access tokens > Fine-grained tokens > Generate new token**.
+2. Em **Repository access**, escolha **Only select repositories** e marque só este repositório.
+3. Em **Permissions > Repository permissions**, coloque **Issues** como **Read and write**. Não precisa de mais nada.
+4. Na Vercel, em **Settings > Environment Variables**, adicione `GITHUB_TOKEN` com o token (e `GITHUB_REPO` no formato `dono/nome`, se o repositório não for `Kauecsilva/pesqueiro.gg`) e faça **Redeploy**.
+
+Sem o token, a aba aparece com um aviso e o resto do site funciona normalmente.
+
 ---
 
 ## Como funciona
@@ -88,6 +99,7 @@ A análise só roda para quem está logado. A IA acerta bem espécies comuns em 
 - **Perfil de cada pescador:** clique em alguém no ranking para ver total, posição, espécies, dias de pesca, maior exemplar de cada espécie e todas as fotos.
 - **Mural:** todos os registros da turma, do mais novo ao mais antigo.
 - **Espécies:** quantos de cada espécie a turma (ou uma pessoa) pegou.
+- **Sugestões:** ideias da turma, que viram issues (tarefas) no GitHub.
 - **Segurança:** só quem está logado vê o site. Cada um só consegue criar, editar ou apagar os próprios registros e fotos (regras no banco, não só na tela).
 
 ## Personalizar
