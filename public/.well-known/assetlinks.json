@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "gg.pesqueiro.app",
+        "sha256_cert_fingerprints": ["D0:0B:65:ED:9A:80:DF:52:4C:A4:C0:45:B1:AB:6D:F2:25:E9:57:87:23:1D:11:3E:3A:99:29:1C:93:7A:F3:E7"]
+      }
+    }]
