@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/compress";
 import { SPECIES, rankFor } from "@/lib/ranks";
+import { photoUrl } from "@/lib/stats";
 
 function today() {
   const d = new Date();
@@ -13,12 +14,19 @@ function today() {
 }
 
 const norm = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+// Espécie para o formulário: usa a da lista quando existir, senão "Outra…"
+function initialSpecies(name) {
+  const match = SPECIES.find((s) => norm(s) === norm(name));
+  return match ? { species: match, other: "" } : { species: "__outra", other: name };
+}
+
 const CONF_LABEL = { alta: "confiança alta", media: "confiança média", baixa: "confiança baixa" };
 
-export default function RegisterForm({ userId, currentTotal }) {
+export default function RegisterForm({ userId, currentTotal, item = null }) {
+  const initial = item ? initialSpecies(item.species) : { species: SPECIES[0], other: "" };
   const router = useRouter();
-  const [species, setSpecies] = useState(SPECIES[0]);
-  const [other, setOther] = useState("");
+  const [species, setSpecies] = useState(initial.species);
+  const [other, setOther] = useState(initial.other);
   const [preview, setPreview] = useState(null);
   const [ai, setAi] = useState(null); // {state: 'loading'|'done'|'nofish'|'error', result}
   const [status, setStatus] = useState(null);
@@ -27,16 +35,10 @@ export default function RegisterForm({ userId, currentTotal }) {
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
-  // Coloca a espécie no formulário: usa a da lista quando existir, senão "Outra…"
   function applySpecies(name) {
-    const match = SPECIES.find((s) => norm(s) === norm(name));
-    if (match) {
-      setSpecies(match);
-      setOther("");
-    } else {
-      setSpecies("__outra");
-      setOther(name);
-    }
+    const next = initialSpecies(name);
+    setSpecies(next.species);
+    setOther(next.other);
   }
 
   async function identify(file) {
@@ -81,59 +83,72 @@ export default function RegisterForm({ userId, currentTotal }) {
     const file = form.get("photo");
 
     const supabase = createClient();
-    let photoPath = null;
+    let newPhoto = null;
     try {
       if (file && file.size > 0) {
         setStatus("Enviando foto…");
         const { blob, type, ext } = await compressImage(file);
-        photoPath = `${userId}/${crypto.randomUUID()}.${ext}`;
+        newPhoto = `${userId}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("fotos")
-          .upload(photoPath, blob, { contentType: type, upsert: false });
+          .upload(newPhoto, blob, { contentType: type, upsert: false });
         if (upErr) throw new Error("foto");
       }
-      setStatus("Registrando…");
-      const { error: dbErr } = await supabase.from("catches").insert({
-        user_id: userId,
+      setStatus(item ? "Salvando…" : "Registrando…");
+      const row = {
         species: name.charAt(0).toUpperCase() + name.slice(1),
         qty,
         size_cm: size,
         caught_on: form.get("date") || today(),
         note: String(form.get("note") || "").trim().slice(0, 140) || null,
-        photo_path: photoPath,
-      });
-      if (dbErr) {
-        if (photoPath) await supabase.storage.from("fotos").remove([photoPath]);
+        photo_path: newPhoto ?? item?.photo_path ?? null,
+      };
+      const { data: saved, error: dbErr } = item
+        ? await supabase.from("catches").update(row).eq("id", item.id).select("id")
+        : await supabase.from("catches").insert({ ...row, user_id: userId }).select("id");
+      if (dbErr || !saved?.length) {
+        if (newPhoto) await supabase.storage.from("fotos").remove([newPhoto]);
         throw new Error("db");
       }
+      // Trocou a foto: a antiga não é mais usada
+      if (item?.photo_path && newPhoto) await supabase.storage.from("fotos").remove([item.photo_path]);
+
       const before = rankFor(currentTotal);
-      const after = rankFor(currentTotal + qty);
-      router.push(after.index > before.index ? `/?promovido=${encodeURIComponent(after.rank.name)}` : "/mural");
+      const after = rankFor(currentTotal - (item?.qty ?? 0) + qty);
+      const done = item ? `/registro/${item.id}` : "/mural";
+      router.push(after.index > before.index ? `/?promovido=${encodeURIComponent(after.rank.name)}` : done);
       router.refresh();
     } catch (err) {
       setStatus(null);
       setError(
         err.message === "foto"
           ? "Não deu para enviar a foto. Tente uma imagem JPG ou PNG menor."
-          : "Não deu para registrar. Tente de novo."
+          : item
+            ? "Não deu para salvar as alterações. Tente de novo."
+            : "Não deu para registrar. Tente de novo."
       );
     }
   }
 
   const busy = Boolean(status);
   const r = ai?.result;
+  const currentPhoto = photoUrl(item?.photo_path);
   const chosen = species === "__outra" ? other : species;
   const suggestions = r ? [r.species, ...r.alternatives].filter((s, i, a) => s && a.findIndex((x) => norm(x) === norm(s)) === i) : [];
 
   return (
     <form className="panel" onSubmit={onSubmit}>
-      <h2>Registrar peixe</h2>
+      <h2>{item ? "Editar registro" : "Registrar peixe"}</h2>
 
       <div className="field">
         <label htmlFor="photo">Foto</label>
         <input id="photo" name="photo" type="file" accept="image/*" onChange={onPhoto} />
-        <span className="hint">Mande a foto primeiro: a IA tenta descobrir a espécie pra você.</span>
-        {preview && <img className="preview" src={preview} alt="Prévia da foto" />}
+        <span className="hint">
+          {item
+            ? "Opcional. Escolha uma foto só se quiser trocar a atual."
+            : "Mande a foto primeiro: a IA tenta descobrir a espécie pra você."}
+        </span>
+        {(preview || currentPhoto) && <img className="preview" src={preview || currentPhoto} alt={preview ? "Prévia da nova foto" : "Foto atual"} />}
       </div>
 
       {ai && (
@@ -187,26 +202,26 @@ export default function RegisterForm({ userId, currentTotal }) {
       <div className="row2">
         <div className="field">
           <label htmlFor="qty">Quantidade</label>
-          <input id="qty" name="qty" type="number" min={1} max={50} defaultValue={1} required />
+          <input id="qty" name="qty" type="number" min={1} max={50} defaultValue={item?.qty ?? 1} required />
         </div>
         <div className="field">
           <label htmlFor="size">Tamanho (cm)</label>
-          <input id="size" name="size" type="number" min={1} max={399} step="0.5" placeholder="Opcional" />
+          <input id="size" name="size" type="number" min={1} max={399} step="0.5" defaultValue={item?.size_cm ?? ""} placeholder="Opcional" />
         </div>
       </div>
       <div className="field">
         <label htmlFor="date">Data</label>
-        <input id="date" name="date" type="date" defaultValue={today()} max={today()} required />
+        <input id="date" name="date" type="date" defaultValue={item?.caught_on ?? today()} max={today()} required />
       </div>
       <div className="field">
         <label htmlFor="note">Comentário</label>
-        <textarea id="note" name="note" maxLength={140} placeholder="Isca, local, a história do que escapou…" />
+        <textarea id="note" name="note" maxLength={140} defaultValue={item?.note ?? ""} placeholder="Isca, local, a história do que escapou…" />
       </div>
       {error && <p className="notice error" role="alert">{error}</p>}
       <div className="actions">
         <button type="button" className="btn ghost" onClick={() => router.back()} disabled={busy}>Cancelar</button>
         <button type="submit" className="btn" disabled={busy || ai?.state === "loading"}>
-          {status || (ai?.state === "loading" ? "Aguarde a análise…" : "Registrar")}
+          {status || (ai?.state === "loading" ? "Aguarde a análise…" : item ? "Salvar alterações" : "Registrar")}
         </button>
       </div>
     </form>

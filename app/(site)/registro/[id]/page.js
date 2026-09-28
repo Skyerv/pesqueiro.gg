@@ -58,7 +58,12 @@ export default async function RegistroPage({ params }) {
           </dl>
           {item.note ? <p className="detail-note">{item.note}</p> : <p className="detail-note muted">Sem descrição.</p>}
           {url && <a href={url} target="_blank" rel="noopener" className="detail-open">Abrir foto em tamanho real</a>}
-          {isMine && <DeleteCatch id={item.id} photoPath={item.photo_path} redirectTo="/mural" />}
+          {isMine && (
+            <div className="detail-owner">
+              <Link href={`/registro/${item.id}/editar`} className="btn ghost small">Editar registro</Link>
+              <DeleteCatch id={item.id} photoPath={item.photo_path} redirectTo="/mural" />
+            </div>
+          )}
         </div>
       </article>
     </>

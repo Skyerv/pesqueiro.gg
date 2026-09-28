@@ -30,7 +30,12 @@ export default function CatchCard({ item, author, showAuthor, canDelete }) {
           {formatDate(item.caught_on)}
         </div>
         {item.note && <p className="note">{item.note}</p>}
-        {canDelete && <DeleteCatch id={item.id} photoPath={item.photo_path} />}
+        {canDelete && (
+          <div className="owner-actions">
+            <Link href={`${href}/editar`} className="del">Editar</Link>
+            <DeleteCatch id={item.id} photoPath={item.photo_path} />
+          </div>
+        )}
       </div>
     </article>
   );

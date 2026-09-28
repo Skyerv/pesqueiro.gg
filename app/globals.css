@@ -222,3 +222,10 @@ textarea { resize: vertical; min-height: 64px; }
 .detail-note.muted { color: var(--muted); font-style: italic; }
 .detail-open { font-size: .88rem; font-weight: 600; align-self: flex-start; }
 .detail .del { margin-top: 0; }
+.owner-actions { margin-top: auto; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 16px; }
+.owner-actions .del { margin-top: 0; }
+.owner-actions .del-error { flex-basis: 100%; }
+.detail-owner { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 4px; }
+.detail-owner .btn.small { margin-top: 0; text-decoration: none; }
+.detail-owner .del { padding-top: 0; }
+.detail-owner .del-error { flex-basis: 100%; }
