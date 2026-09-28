@@ -114,6 +114,7 @@ Sem o token, a aba aparece com um aviso e o resto do site funciona normalmente.
 - **Registro de peixe:** foto principal, até 8 fotos ou vídeos extras (vídeos de até 50 MB) e, se quiser, o local da captura: nome do lugar e ponto no mapa (OpenStreetMap, com opção de satélite), marcado pelo GPS do celular, tocando no mapa ou pela busca. A turma toda vê o local.
 - **Busca de lugar no mapa:** aceita o nome do lugar ("Pesqueiro Santo Agostinho Indaiatuba"), um link do Google Maps (no app do Google Maps: Compartilhar > Copiar link) ou coordenadas (`-23.08, -47.17`). A busca por nome usa o OpenStreetMap, que é gratuito mas não conhece todos os pesqueiros; para esses, o link do Google Maps resolve.
 - **Espécies:** quantos de cada espécie a turma (ou uma pessoa) pegou.
+- **Locais:** lista dos pesqueiros onde a turma já pescou, com nota de 0 a 10 de cada um (e a média), valor para pescar, descrição, mapa, o que já saiu em cada local e as dicas ligadas a ele. As informações do local podem ser completadas por qualquer um da turma; excluir, só quem cadastrou. No registro de peixe, o local é escolhido da lista ou cadastrado em "Outro".
 - **Dicas:** espaço da turma para compartilhar equipamentos (com link da loja), iscas, receitas, técnicas e o que mais quiser, com texto, link e foto. Filtro por categoria; cada um edita e exclui as próprias dicas.
 - **Sugestões:** ideias da turma, que viram issues (tarefas) no GitHub.
 - **Segurança:** só quem está logado vê o site. Cada um só consegue criar, editar ou apagar os próprios registros e fotos (regras no banco, não só na tela).
@@ -146,6 +147,7 @@ Quando uma versão nova trouxer um arquivo em `supabase/migrations`, rode esse a
 
 - `002_midias_e_local.sql`: fotos e vídeos extras por registro e local da captura.
 - `003_dicas.sql`: aba Dicas.
+- `004_locais.sql`: lista de locais, notas e vínculo com registros e dicas.
 
 ## Busca de lugares pelo Google (opcional)
 

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { compressImage } from "@/lib/compress";
 import { MAX_EXTRA, MAX_VIDEO_MB, VIDEO_TYPES, mediaKind, videoExt, videoType } from "@/lib/media";
 import { SPECIES, rankFor } from "@/lib/ranks";
+import { sameName } from "@/lib/spots";
 import { photoUrl } from "@/lib/stats";
 
 // O mapa usa o Leaflet, que só roda no navegador
@@ -27,7 +28,7 @@ function initialSpecies(name) {
 
 const CONF_LABEL = { alta: "confiança alta", media: "confiança média", baixa: "confiança baixa" };
 
-export default function RegisterForm({ userId, currentTotal, item = null, media = [], aiEnabled = false }) {
+export default function RegisterForm({ userId, currentTotal, item = null, media = [], spots = [], initialSpotId = null, aiEnabled = false }) {
   const initial = item ? initialSpecies(item.species) : { species: SPECIES[0], other: "" };
   const router = useRouter();
   const [species, setSpecies] = useState(initial.species);
@@ -42,6 +43,14 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
   const [showMap, setShowMap] = useState(item?.lat != null);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState(null);
+  // Local: "" = sem local, id de um local da lista, ou "__novo" para cadastrar outro
+  const [spotChoice, setSpotChoice] = useState(() => {
+    if (!item && initialSpotId && spots.some((s) => s.id === initialSpotId)) return initialSpotId;
+    if (item?.spot_id && spots.some((s) => s.id === item.spot_id)) return item.spot_id;
+    const byName = item?.spot_name ? spots.find((s) => sameName(s.name, item.spot_name)) : null;
+    if (byName) return byName.id;
+    return item?.spot_name ? "__novo" : "";
+  });
   const [spotName, setSpotName] = useState(item?.spot_name ?? "");
   const [cover, setCover] = useState(null); // foto extra escolhida como capa: {saved: id} ou {extra: key}
   const aiRun = useRef(0);
@@ -230,7 +239,11 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
     const qty = Math.max(1, Math.min(50, parseInt(form.get("qty"), 10) || 1));
     const size = parseFloat(String(form.get("size")).replace(",", ".")) || null;
     const file = form.get("photo");
-    const spotLabel = spotName.trim().replace(/\s+/g, " ").slice(0, 60) || null;
+    const chosenSpot = spots.find((s) => s.id === spotChoice) ?? null;
+    const newSpotName = spotChoice === "__novo" ? spotName.trim().replace(/\s+/g, " ").slice(0, 60) : "";
+    if (spotChoice === "__novo" && newSpotName.length < 2) {
+      return setError("Escreva o nome do local novo ou escolha “Sem local”.");
+    }
 
     // Qual foto vira a capa (a do mural): a principal escolhida agora > a extra marcada como capa >
     // a capa atual > a primeira foto extra, quando o registro não tem capa nenhuma
@@ -254,6 +267,28 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         if (upErr) throw new Error("foto");
       }
       setStatus(item ? "Salvando…" : "Registrando…");
+
+      // Local novo: usa o que já existe com o mesmo nome ou cadastra na lista da turma
+      let spotRow = chosenSpot;
+      if (newSpotName) {
+        spotRow = spots.find((s) => sameName(s.name, newSpotName)) ?? null;
+        if (!spotRow) {
+          const { data: created, error: spotErr } = await supabase
+            .from("spots")
+            .insert({ name: newSpotName, lat: spot?.lat ?? null, lng: spot?.lng ?? null, created_by: userId })
+            .select("id, name, lat, lng")
+            .single();
+          if (created) spotRow = created;
+          else if (spotErr?.code === "23505") {
+            // Alguém cadastrou o mesmo nome agora há pouco
+            const { data: existing } = await supabase.from("spots").select("id, name, lat, lng").ilike("name", newSpotName).maybeSingle();
+            spotRow = existing ?? null;
+          }
+          if (!spotRow) throw new Error("local");
+        }
+      }
+      const spotLabel = spotRow?.name ?? null;
+
       const row = {
         species: name.charAt(0).toUpperCase() + name.slice(1),
         qty,
@@ -261,9 +296,11 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         caught_on: form.get("date") || today(),
         note: String(form.get("note") || "").trim().slice(0, 140) || null,
         photo_path: newPhoto ?? coverSaved?.path ?? item?.photo_path ?? null,
+        spot_id: spotRow?.id ?? null,
         spot_name: spotLabel,
-        lat: spot?.lat ?? null,
-        lng: spot?.lng ?? null,
+        // Ponto exato marcado ou, se não marcou, o ponto do local
+        lat: spot?.lat ?? spotRow?.lat ?? null,
+        lng: spot?.lng ?? spotRow?.lng ?? null,
       };
       const { data: saved, error: dbErr } = item
         ? await supabase.from("catches").update(row).eq("id", item.id).select("id")
@@ -293,7 +330,9 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
       setError(
         err.message === "foto"
           ? "Não deu para enviar a foto. Tente uma imagem JPG ou PNG menor."
-          : item
+          : err.message === "local"
+            ? "Não deu para cadastrar o local novo. Tente de novo ou escolha um da lista."
+            : item
             ? "Não deu para salvar as alterações. Tente de novo."
             : "Não deu para registrar. Tente de novo."
       );
@@ -301,6 +340,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
   }
 
   const busy = Boolean(status);
+  const chosenSpotView = spots.find((s) => s.id === spotChoice) ?? null;
   const r = ai?.result;
   const chosen = species === "__outra" ? other : species;
   const suggestions = r ? [r.species, ...r.alternatives].filter((s, i, a) => s && a.findIndex((x) => norm(x) === norm(s)) === i) : [];
@@ -460,39 +500,71 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
 
       <fieldset className="field group">
         <legend>Local da captura</legend>
-        <input
-          name="spot_name"
-          type="text"
-          maxLength={60}
-          value={spotName}
-          onChange={(e) => setSpotName(e.target.value)}
-          placeholder="Nome do lugar (ex.: Represa do Zé, Rio Tietê)"
-          aria-label="Nome do local"
-        />
-        <div className="spot-actions">
-          <button type="button" className="btn ghost small" onClick={useMyLocation} disabled={locating}>
-            {locating ? "Localizando…" : "📍 Usar minha localização"}
-          </button>
-          {!showMap && (
-            <button type="button" className="btn ghost small" onClick={() => setShowMap(true)}>
-              Marcar no mapa
-            </button>
-          )}
-          {spot && (
-            <button type="button" className="linkish" onClick={() => setSpot(null)}>
-              Tirar o ponto
-            </button>
-          )}
-        </div>
-        {locError && <span className="hint warn">{locError}</span>}
-        {showMap && (
+        <select
+          value={spotChoice}
+          onChange={(e) => {
+            setSpotChoice(e.target.value);
+            // Trocou de local: o ponto exato marcado era do local anterior
+            setSpot(null);
+            setShowMap(e.target.value === "__novo");
+          }}
+          aria-label="Local da captura"
+        >
+          <option value="">Sem local</option>
+          {spots.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}{s.city ? ` · ${s.city}` : ""}
+            </option>
+          ))}
+          <option value="__novo">➕ Outro (novo local)</option>
+        </select>
+        {spotChoice === "__novo" && (
+          <input
+            type="text"
+            maxLength={60}
+            value={spotName}
+            onChange={(e) => setSpotName(e.target.value)}
+            placeholder="Nome do local novo (ex.: Pesqueiro do Zé, Rio Tietê)"
+            aria-label="Nome do local novo"
+            className="spot-new-name"
+          />
+        )}
+        {spotChoice && (
           <>
-            <SpotMap value={spot} onChange={setSpot} onPick={(label) => setSpotName((n) => n.trim() ? n : label.slice(0, 60))} />
-            <span className="hint">
-              {spot ? "Arraste o alfinete ou toque no mapa para ajustar." : "Toque no mapa para marcar onde pegou o peixe."} A turma toda vê o local.
-            </span>
+            <div className="spot-actions">
+              <button type="button" className="btn ghost small" onClick={useMyLocation} disabled={locating}>
+                {locating ? "Localizando…" : "📍 Usar minha localização"}
+              </button>
+              {!showMap && (
+                <button type="button" className="btn ghost small" onClick={() => setShowMap(true)}>
+                  {spotChoice === "__novo" ? "Marcar no mapa" : "Marcar o ponto exato"}
+                </button>
+              )}
+              {spot && (
+                <button type="button" className="linkish" onClick={() => setSpot(null)}>
+                  Tirar o ponto
+                </button>
+              )}
+            </div>
+            {locError && <span className="hint warn">{locError}</span>}
+            {showMap && (
+              <>
+                <SpotMap
+                  value={spot ?? (chosenSpotView?.lat != null ? { lat: chosenSpotView.lat, lng: chosenSpotView.lng } : null)}
+                  onChange={setSpot}
+                  onPick={(label) => spotChoice === "__novo" && setSpotName((n) => (n.trim() ? n : label.slice(0, 60)))}
+                />
+                <span className="hint">
+                  {spot || chosenSpotView?.lat != null
+                    ? "Arraste o alfinete ou toque no mapa para ajustar."
+                    : "Toque no mapa para marcar onde pegou o peixe."}{" "}
+                  A turma toda vê o local.
+                </span>
+              </>
+            )}
           </>
         )}
+        {!spotChoice && <span className="hint">Escolha um local da lista ou “Outro” para cadastrar um novo.</span>}
       </fieldset>
 
       {error && <p className="notice error" role="alert">{error}</p>}

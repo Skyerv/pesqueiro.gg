@@ -17,12 +17,15 @@ export default async function DicaPage({ params }) {
   const { supabase, user } = await getViewer();
   const { data: tip } = await supabase
     .from("tips")
-    .select("id, user_id, kind, title, body, url, photo_path, created_at, updated_at")
+    .select("id, user_id, kind, title, body, url, photo_path, spot_id, created_at, updated_at")
     .eq("id", id)
     .maybeSingle();
   if (!tip) notFound();
 
-  const { data: author } = await supabase.from("profiles").select("id, nickname, avatar_path").eq("id", tip.user_id).maybeSingle();
+  const [{ data: author }, { data: spot }] = await Promise.all([
+    supabase.from("profiles").select("id, nickname, avatar_path").eq("id", tip.user_id).maybeSingle(),
+    tip.spot_id ? supabase.from("spots").select("id, name").eq("id", tip.spot_id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
   const k = kindOf(tip.kind);
   const img = photoUrl(tip.photo_path);
   const isMine = tip.user_id === user.id;
@@ -47,6 +50,9 @@ export default async function DicaPage({ params }) {
             </Link>
             <span className="tip-date">{when}{tip.updated_at ? " · editada" : ""}</span>
           </div>
+          {spot && (
+            <Link href={`/locais/${spot.id}`} className="tip-spot">📍 {spot.name}</Link>
+          )}
           {tip.url && (
             <a href={tip.url} target="_blank" rel="noopener noreferrer nofollow ugc" className="btn tip-open">
               Abrir link · {domainOf(tip.url)}

@@ -17,6 +17,7 @@ export default function Header({ profile }) {
                 Meu perfil
               </Link>
             )}
+            <Link href="/sugestoes" className="linkish head-link">Sugestões</Link>
             <form action="/auth/sair" method="post">
               <button className="linkish" type="submit">Sair</button>
             </form>

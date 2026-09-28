@@ -5,6 +5,7 @@ import DeleteCatch from "@/components/DeleteCatch";
 import SpotMap from "@/components/SpotMap";
 import { getViewer } from "@/lib/data";
 import { mapsLink } from "@/lib/media";
+import { likeExact } from "@/lib/spots";
 import { formatDate, photoUrl } from "@/lib/stats";
 
 export const metadata = { title: "Registro | Pesqueiro.GG" };
@@ -19,14 +20,20 @@ export default async function RegistroPage({ params, searchParams }) {
   const { supabase, user } = await getViewer();
   const { data: item } = await supabase
     .from("catches")
-    .select("id, user_id, species, qty, size_cm, caught_on, note, photo_path, spot_name, lat, lng, created_at")
+    .select("id, user_id, species, qty, size_cm, caught_on, note, photo_path, spot_id, spot_name, lat, lng, created_at")
     .eq("id", id)
     .maybeSingle();
   if (!item) notFound();
 
-  const [{ data: author }, { data: media }] = await Promise.all([
+  const [{ data: author }, { data: media }, { data: spotRow }] = await Promise.all([
     supabase.from("profiles").select("id, nickname, avatar_path").eq("id", item.user_id).maybeSingle(),
     supabase.from("catch_media").select("id, path, kind").eq("catch_id", item.id).order("position"),
+    // Página do local: pelo vínculo ou, em registros antigos, pelo nome
+    item.spot_id
+      ? supabase.from("spots").select("id").eq("id", item.spot_id).maybeSingle()
+      : item.spot_name
+        ? supabase.from("spots").select("id").ilike("name", likeExact(item.spot_name)).maybeSingle()
+        : Promise.resolve({ data: null }),
   ]);
   const hasSpot = item.lat != null && item.lng != null;
 
@@ -96,7 +103,11 @@ export default async function RegistroPage({ params, searchParams }) {
           {(hasSpot || item.spot_name) && (
             <section className="detail-section">
               <h3 className="sec">Local da captura</h3>
-              {item.spot_name && <p className="spot-name">📍 {item.spot_name}</p>}
+              {item.spot_name && (
+                <p className="spot-name">
+                  📍 {spotRow ? <Link href={`/locais/${spotRow.id}`}>{item.spot_name}</Link> : item.spot_name}
+                </p>
+              )}
               {hasSpot && (
                 <>
                   <SpotMap value={{ lat: item.lat, lng: item.lng }} height={240} />

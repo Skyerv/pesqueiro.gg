@@ -202,7 +202,7 @@ function variantFor(path) {
   if (path.startsWith("/mural")) return "mural";
   if (path.startsWith("/especies")) return "especies";
   if (path.startsWith("/dicas")) return "dicas";
-  if (path.startsWith("/sugestoes")) return "sugestoes";
+  if (path.startsWith("/sugestoes") || path.startsWith("/locais")) return "sugestoes";
   if (path.startsWith("/pescador")) return "pescador";
   return "calmo";
 }

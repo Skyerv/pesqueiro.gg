@@ -8,9 +8,10 @@ import { photoUrl } from "@/lib/stats";
 import { KINDS, MAX_BODY, MAX_TITLE, normalizeUrl } from "@/lib/tips";
 
 // Criar ou editar uma dica (com tip = edição)
-export default function TipForm({ userId, tip = null, initialKind = "equipamento" }) {
+export default function TipForm({ userId, tip = null, initialKind = "equipamento", spots = [], initialSpotId = null }) {
   const router = useRouter();
   const [kind, setKind] = useState(tip?.kind ?? initialKind);
+  const [spotId, setSpotId] = useState(tip?.spot_id ?? initialSpotId ?? "");
   const [preview, setPreview] = useState(null);
   const [dropPhoto, setDropPhoto] = useState(false);
   const [status, setStatus] = useState(null);
@@ -50,6 +51,7 @@ export default function TipForm({ userId, tip = null, initialKind = "equipamento
         body,
         url,
         photo_path: newPhoto ?? (dropPhoto ? null : tip?.photo_path ?? null),
+        spot_id: spotId || null,
       };
       const { data: saved, error: dbErr } = tip
         ? await supabase.from("tips").update({ ...row, updated_at: new Date().toISOString() }).eq("id", tip.id).select("id")
@@ -112,6 +114,22 @@ export default function TipForm({ userId, tip = null, initialKind = "equipamento
           required
         />
       </div>
+
+      {spots.length > 0 && (
+        <div className="field">
+          <label htmlFor="spot">Sobre algum local?</label>
+          <select id="spot" value={spotId} onChange={(e) => setSpotId(e.target.value)}>
+            <option value="">Nenhum em especial</option>
+            {spots.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+                {s.city ? ` · ${s.city}` : ""}
+              </option>
+            ))}
+          </select>
+          <span className="hint">Opcional. A dica aparece também na página do local.</span>
+        </div>
+      )}
 
       <div className="field">
         <label htmlFor="url">Link</label>

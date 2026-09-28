@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/", label: "Ranking" },
   { href: "/mural", label: "Mural" },
+  { href: "/locais", label: "Locais" },
   { href: "/dicas", label: "Dicas" },
   { href: "/especies", label: "Espécies" },
-  { href: "/sugestoes", label: "Sugestões" },
 ];
 
 export default function Nav() {

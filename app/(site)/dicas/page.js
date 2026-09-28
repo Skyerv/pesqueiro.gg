@@ -16,15 +16,17 @@ export default async function DicasPage({ searchParams }) {
 
   let query = supabase
     .from("tips")
-    .select("id, user_id, kind, title, body, url, photo_path, created_at")
+    .select("id, user_id, kind, title, body, url, photo_path, spot_id, created_at")
     .order("created_at", { ascending: false })
     .limit(200);
   if (tipo) query = query.eq("kind", tipo);
-  const [{ data: tips }, { data: profiles }] = await Promise.all([
+  const [{ data: tips }, { data: profiles }, { data: spots }] = await Promise.all([
     query,
     supabase.from("profiles").select("id, nickname, avatar_path"),
+    supabase.from("spots").select("id, name"),
   ]);
   const byId = Object.fromEntries((profiles ?? []).map((p) => [p.id, p]));
+  const spotName = Object.fromEntries((spots ?? []).map((s) => [s.id, s.name]));
 
   return (
     <>
@@ -60,6 +62,9 @@ export default async function DicasPage({ searchParams }) {
                     {t.user_id === user.id && <small> (você)</small>}
                   </Link>
                   <span className="tip-date">{dateBR(t.created_at)}</span>
+                  {spotName[t.spot_id] && (
+                    <Link href={`/locais/${t.spot_id}`} className="tip-spot">📍 {spotName[t.spot_id]}</Link>
+                  )}
                   {t.url && (
                     <a href={t.url} target="_blank" rel="noopener noreferrer nofollow ugc" className="tip-link">
                       🔗 {domainOf(t.url)}
