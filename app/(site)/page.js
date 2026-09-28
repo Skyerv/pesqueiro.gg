@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
+import CareerTab from "@/components/CareerTab";
 import FishLine from "@/components/FishLine";
 import { getBoard, getViewer } from "@/lib/data";
 import { RANKS, rankFor } from "@/lib/ranks";
@@ -11,6 +12,7 @@ export default async function RankingPage({ searchParams }) {
   const { profiles, catches } = await getBoard(supabase);
   const list = buildStats(profiles, catches);
   const promo = RANKS.find((r) => r.name === sp?.promovido);
+  const myTotal = list.find((s) => s.id === user.id)?.total ?? 0;
 
   return (
     <>
@@ -43,16 +45,7 @@ export default async function RankingPage({ searchParams }) {
         ))}
       </ol>
 
-      <details className="ladder">
-        <summary>Plano de carreira completo</summary>
-        <ol>
-          {RANKS.map((r) => (
-            <li key={r.name}>
-              {r.name} <span>{r.min === 0 ? "(início)" : `(${r.min})`}</span>
-            </li>
-          ))}
-        </ol>
-      </details>
+      <CareerTab total={myTotal} />
     </>
   );
 }

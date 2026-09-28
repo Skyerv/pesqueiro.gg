@@ -100,11 +100,6 @@ h1 a { color: inherit; text-decoration: none; }
 .bobber::before { content: ""; position: absolute; left: 50%; top: -7px; width: 2px; height: 6px; background: var(--ink); margin-left: -1px; border-radius: 1px; }
 .next { grid-column: 1 / -1; font-size: .82rem; color: var(--muted); margin-top: 2px; }
 
-details.ladder { margin-top: 22px; background: var(--surface); border-radius: 16px; padding: 4px 16px; box-shadow: var(--shadow); }
-details.ladder summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
-.ladder ol { margin: 0 0 14px; padding-left: 1.4em; columns: 2; column-gap: 24px; font-size: .92rem; }
-.ladder li { margin: 3px 0; break-inside: avoid; }
-.ladder li span { color: var(--muted); font-variant-numeric: tabular-nums; }
 
 .promo-banner { background: var(--surface); border: 2px solid var(--bobber); border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 18px; }
 .promo-banner p { margin: 0; color: var(--muted); }
@@ -172,7 +167,6 @@ textarea { resize: vertical; min-height: 64px; }
 .auth-foot { text-align: center; font-size: .9rem; margin: 16px 0 0; }
 
 @media (max-width: 420px) {
-  .ladder ol { columns: 1; }
   .row2 { grid-template-columns: 1fr; }
   header.top { flex-direction: column; align-items: stretch; }
 }
@@ -449,3 +443,48 @@ fieldset.group legend { font-weight: 600; font-size: .92rem; padding: 0; margin-
 .media-pick .cover-btn[aria-pressed="true"] { background: var(--bobber); }
 .media-pick li.cover { outline: 3px solid var(--bobber); outline-offset: -3px; }
 .media-pick li:has(.media-tag) .cover-btn { left: 24px; }
+
+/* Plano de carreira: aba fina na lateral direita + painel */
+.career-tab {
+  position: fixed; right: 0; top: 50%; z-index: 20;
+  writing-mode: vertical-rl; transform: translateY(-50%) rotate(180deg);
+  border: 0; border-radius: 0 10px 10px 0; padding: 14px 7px;
+  background: var(--water); color: var(--surface);
+  font: inherit; font-size: .78rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  cursor: pointer; box-shadow: 0 2px 8px rgba(0, 0, 0, .18); opacity: .92;
+}
+.career-tab:hover { opacity: 1; padding-right: 10px; }
+.career-backdrop {
+  position: fixed; inset: 0; z-index: 30; background: rgba(0, 0, 0, .35);
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.career-backdrop.open { opacity: 1; pointer-events: auto; }
+.career-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 31; width: min(280px, 84vw);
+  background: var(--surface); box-shadow: -6px 0 24px rgba(0, 0, 0, .25);
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 18px 18px; overflow-y: auto;
+  transform: translateX(100%); transition: transform .28s ease; display: flex; flex-direction: column;
+}
+.career-panel.open { transform: translateX(0); }
+.career-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.career-head h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.career-close { border: 0; background: none; color: var(--muted); font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 0 4px; }
+.career-list { list-style: none; margin: 0; padding: 0; counter-reset: cargo; }
+.career-list li {
+  display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
+  padding: 8px 0 8px 14px; border-left: 2px solid var(--line); position: relative; font-size: .92rem;
+}
+.career-list li::before {
+  content: ""; position: absolute; left: -5px; top: 50%; width: 8px; height: 8px; margin-top: -4px;
+  border-radius: 50%; background: var(--surface); border: 2px solid var(--line);
+}
+.career-list li.done { color: var(--muted); }
+.career-list li.done::before { background: var(--water); border-color: var(--water); }
+.career-list li.done, .career-list li.now { border-left-color: var(--water); }
+.career-list li.now { font-weight: 800; color: var(--bobber); }
+.career-list li.now::before { background: var(--bobber); border-color: var(--bobber); width: 10px; height: 10px; left: -6px; margin-top: -5px; }
+.career-min { color: var(--muted); font-size: .8rem; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.career-foot { margin: 14px 0 0; font-size: .85rem; color: var(--muted); }
+@media (prefers-reduced-motion: reduce) {
+  .career-panel, .career-backdrop { transition: none; }
+}
