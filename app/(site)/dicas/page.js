@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
+import TipFilter from "@/components/TipFilter";
 import { getViewer } from "@/lib/data";
 import { photoUrl } from "@/lib/stats";
 import { KINDS, domainOf, kindOf } from "@/lib/tips";
@@ -28,18 +29,10 @@ export default async function DicasPage({ searchParams }) {
   return (
     <>
       <div className="tips-top">
-        <p className="sub">Equipamentos, iscas, receitas e macetes da turma.</p>
+        <TipFilter value={tipo} />
         <Link href={tipo ? `/dicas/nova?tipo=${tipo}` : "/dicas/nova"} className="btn small">+ Nova dica</Link>
       </div>
-
-      <nav className="chips" aria-label="Categorias">
-        <Link href="/dicas" className="chip" aria-current={!tipo ? "true" : undefined}>Tudo</Link>
-        {KINDS.map((k) => (
-          <Link key={k.key} href={`/dicas?tipo=${k.key}`} className="chip" aria-current={tipo === k.key ? "true" : undefined}>
-            {k.emoji} {k.label}
-          </Link>
-        ))}
-      </nav>
+      <p className="sub tips-sub">Equipamentos, iscas, receitas e macetes da turma.</p>
 
       {!tips?.length ? (
         <div className="empty">

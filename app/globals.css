@@ -558,7 +558,6 @@ fieldset.group legend { font-weight: 600; font-size: .92rem; padding: 0; margin-
 
 /* Dicas */
 .tips-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-.tips-top .sub { margin: 0; }
 .tips-top .btn.small { margin-top: 0; white-space: nowrap; }
 .tips { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .tip { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; border-left: 4px solid var(--water); }
@@ -584,3 +583,14 @@ fieldset.group legend { font-weight: 600; font-size: .92rem; padding: 0; margin-
 .kind-pick { display: flex; flex-wrap: wrap; gap: 8px; }
 .kind-pick .chip { background: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .9rem; }
 .kind-pick .chip[aria-checked="true"] { background: var(--water); border-color: var(--water); color: var(--surface); }
+.tips-sub { margin: -4px 0 14px; font-size: .85rem; }
+.tip-filter {
+  display: inline-flex; align-items: center; gap: 6px; padding: 0 4px 0 12px;
+  border: 1.5px solid var(--line); border-radius: 999px; background: var(--surface);
+  font-size: .85rem; font-weight: 600; color: var(--muted);
+}
+.tip-filter select {
+  width: auto; border: 0; border-radius: 999px; background: transparent; color: var(--ink); font: inherit; font-weight: 700;
+  padding: 7px 6px; cursor: pointer; outline-offset: 2px;
+}
+.tip-filter select option { background: var(--surface); color: var(--ink); }
