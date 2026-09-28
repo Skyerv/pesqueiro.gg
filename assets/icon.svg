@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fundo cobre tudo (serve para o ícone "maskable"); o desenho fica na zona segura central -->
+  <rect width="512" height="512" fill="#1E5C63"/>
+  <!-- Anel de água atrás da boia -->
+  <ellipse cx="256" cy="352" rx="150" ry="34" fill="#17494F"/>
+  <!-- Haste -->
+  <rect x="246" y="92" width="20" height="78" rx="10" fill="#F4F1EA"/>
+  <!-- Boia: metade de cima vermelha, de baixo clara -->
+  <path d="M146 256 A110 110 0 0 1 366 256 Z" fill="#D93A2B"/>
+  <path d="M146 256 A110 110 0 0 0 366 256 Z" fill="#F4F1EA"/>
+  <rect x="140" y="248" width="232" height="16" rx="8" fill="#12302F"/>
+  <!-- Brilho -->
+  <path d="M190 206 A72 72 0 0 1 236 170" stroke="#F4F1EA" stroke-opacity=".55" stroke-width="14" stroke-linecap="round" fill="none"/>
+  <!-- Ondinhas -->
+  <path d="M132 404 q31 -22 62 0 t62 0 t62 0 t62 0" stroke="#5DB2B8" stroke-width="16" stroke-linecap="round" fill="none"/>
+</svg>

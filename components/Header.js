@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Avatar from "./Avatar";
 import Nav from "./Nav";
+import InstallApp from "./InstallApp";
 
 export default function Header({ profile }) {
   return (
@@ -19,6 +20,7 @@ export default function Header({ profile }) {
             <form action="/auth/sair" method="post">
               <button className="linkish" type="submit">Sair</button>
             </form>
+            <InstallApp />
           </div>
         </div>
         {profile && <Link href="/registrar" className="btn">Registrar peixe</Link>}
