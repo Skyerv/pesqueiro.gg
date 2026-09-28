@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { entrar, cadastrar, esqueci } from "./actions";
+import PasswordField from "@/components/PasswordField";
 
 export const metadata = { title: "Entrar | Pesqueiro.GG" };
 
@@ -33,10 +34,7 @@ export default async function LoginPage({ searchParams }) {
               <label htmlFor="email">E-mail</label>
               <input id="email" name="email" type="email" autoComplete="email" defaultValue={email} required />
             </div>
-            <div className="field">
-              <label htmlFor="password">Senha</label>
-              <input id="password" name="password" type="password" autoComplete="current-password" required />
-            </div>
+            <PasswordField id="password" label="Senha" autoComplete="current-password" />
             <button className="btn full" type="submit">Entrar</button>
             <p className="auth-foot"><Link href="/login?modo=esqueci">Esqueci minha senha</Link></p>
           </form>
@@ -48,11 +46,7 @@ export default async function LoginPage({ searchParams }) {
               <label htmlFor="email">E-mail</label>
               <input id="email" name="email" type="email" autoComplete="email" defaultValue={email} required />
             </div>
-            <div className="field">
-              <label htmlFor="password">Senha</label>
-              <input id="password" name="password" type="password" autoComplete="new-password" minLength={6} required />
-              <span className="hint">Pelo menos 6 caracteres.</span>
-            </div>
+            <PasswordField id="password" label="Senha" autoComplete="new-password" minLength={6} hint="Pelo menos 6 caracteres." />
             {pedeConvite && (
               <div className="field">
                 <label htmlFor="convite">Código de convite</label>
