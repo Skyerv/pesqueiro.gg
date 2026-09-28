@@ -1,7 +1,7 @@
 import RegisterForm from "@/components/RegisterForm";
 import { getViewer } from "@/lib/data";
 
-export const metadata = { title: "Registrar peixe | Quadro de promoções" };
+export const metadata = { title: "Registrar peixe | Pesqueiro.GG" };
 
 export default async function RegistrarPage() {
   const { supabase, user } = await getViewer();

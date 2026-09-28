@@ -1,4 +1,4 @@
-# Quadro de promoções da pescaria 🎣
+# Pesqueiro.GG 🎣
 
 Site da turma de pesca: cada um cria sua conta com e-mail e senha, registra os peixes (com foto, espécie e tamanho) e sobe no plano de carreira, de Jovem Aprendiz a CEO dos Mares.
 
@@ -23,7 +23,7 @@ Site da turma de pesca: cada um cria sua conta com e-mail e senha, registra os p
    ```bash
    git init
    git add .
-   git commit -m "Quadro de promoções"
+   git commit -m "Pesqueiro.GG"
    git branch -M main
    git remote add origin https://github.com/SEU-USUARIO/SEU-REPO.git
    git push -u origin main
@@ -57,7 +57,7 @@ Depois, em **Authentication > Emails** (ou **Email Templates**), ajuste dois mod
 **Confirm signup** → troque o link por:
 ```html
 <h2>Confirme sua conta</h2>
-<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Ativar minha conta no Quadro de promoções</a></p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">Ativar minha conta no Pesqueiro.GG</a></p>
 ```
 
 **Reset password** → troque o link por:

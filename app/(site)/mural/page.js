@@ -1,7 +1,7 @@
 import CatchCard from "@/components/CatchCard";
 import { getBoard, getViewer } from "@/lib/data";
 
-export const metadata = { title: "Mural | Quadro de promoções" };
+export const metadata = { title: "Mural | Pesqueiro.GG" };
 
 export default async function MuralPage() {
   const { supabase, user } = await getViewer();

@@ -1,4 +1,4 @@
--- Quadro de promoções da pescaria
+-- Pesqueiro.GG
 -- Rode este arquivo inteiro no Supabase: SQL Editor > New query > Run.
 
 -- Perfis (um por conta)

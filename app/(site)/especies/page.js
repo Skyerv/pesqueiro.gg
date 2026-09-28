@@ -3,7 +3,7 @@ import SpeciesList from "@/components/SpeciesList";
 import { getBoard, getViewer } from "@/lib/data";
 import { buildStats, speciesTotals } from "@/lib/stats";
 
-export const metadata = { title: "Espécies | Quadro de promoções" };
+export const metadata = { title: "Espécies | Pesqueiro.GG" };
 
 export default async function EspeciesPage({ searchParams }) {
   const { supabase, user } = await getViewer();

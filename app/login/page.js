@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { entrar, cadastrar, esqueci } from "./actions";
 
-export const metadata = { title: "Entrar | Quadro de promoções" };
+export const metadata = { title: "Entrar | Pesqueiro.GG" };
 
 export default async function LoginPage({ searchParams }) {
   const sp = await searchParams;
@@ -14,7 +14,7 @@ export default async function LoginPage({ searchParams }) {
   return (
     <main className="auth">
       <div className="auth-card">
-        <h1>Quadro de promoções</h1>
+        <h1>Pesqueiro.GG</h1>
         <p className="sub">Cada peixe conta pro seu plano de carreira.</p>
 
         {modo !== "esqueci" && (

@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Quadro de promoções da pescaria",
+  title: "Pesqueiro.GG",
   description: "Ranking da turma de pesca: cada peixe conta pro seu plano de carreira.",
 };
 

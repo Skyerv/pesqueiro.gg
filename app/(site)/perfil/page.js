@@ -1,7 +1,7 @@
 import ProfileForm from "@/components/ProfileForm";
 import { getViewer } from "@/lib/data";
 
-export const metadata = { title: "Perfil | Quadro de promoções" };
+export const metadata = { title: "Perfil | Pesqueiro.GG" };
 
 export default async function PerfilPage() {
   const { user, profile } = await getViewer({ needProfile: false });

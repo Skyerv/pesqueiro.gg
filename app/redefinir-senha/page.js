@@ -1,6 +1,6 @@
 import { salvarSenha } from "./actions";
 
-export const metadata = { title: "Nova senha | Quadro de promoções" };
+export const metadata = { title: "Nova senha | Pesqueiro.GG" };
 
 export default async function RedefinirSenha({ searchParams }) {
   const sp = await searchParams;

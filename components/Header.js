@@ -7,7 +7,7 @@ export default function Header({ profile }) {
     <>
       <header className="top">
         <div>
-          <h1><Link href="/">Quadro de promoções</Link></h1>
+          <h1><Link href="/">Pesqueiro.GG</Link></h1>
           <p className="sub">Cada peixe conta pro seu plano de carreira.</p>
           <div className="me-row">
             {profile && (
