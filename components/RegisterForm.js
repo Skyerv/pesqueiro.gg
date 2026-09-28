@@ -42,6 +42,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
   const [showMap, setShowMap] = useState(item?.lat != null);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState(null);
+  const [spotName, setSpotName] = useState(item?.spot_name ?? "");
   const aiRun = useRef(0);
   const fileRef = useRef(null);
   const currentPhoto = photoUrl(item?.photo_path);
@@ -207,7 +208,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
     const qty = Math.max(1, Math.min(50, parseInt(form.get("qty"), 10) || 1));
     const size = parseFloat(String(form.get("size")).replace(",", ".")) || null;
     const file = form.get("photo");
-    const spotName = String(form.get("spot_name") || "").trim().replace(/\s+/g, " ").slice(0, 60) || null;
+    const spotLabel = spotName.trim().replace(/\s+/g, " ").slice(0, 60) || null;
 
     const supabase = createClient();
     let newPhoto = null;
@@ -229,7 +230,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         caught_on: form.get("date") || today(),
         note: String(form.get("note") || "").trim().slice(0, 140) || null,
         photo_path: newPhoto ?? item?.photo_path ?? null,
-        spot_name: spotName,
+        spot_name: spotLabel,
         lat: spot?.lat ?? null,
         lng: spot?.lng ?? null,
       };
@@ -417,7 +418,8 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
           name="spot_name"
           type="text"
           maxLength={60}
-          defaultValue={item?.spot_name ?? ""}
+          value={spotName}
+          onChange={(e) => setSpotName(e.target.value)}
           placeholder="Nome do lugar (ex.: Represa do Zé, Rio Tietê)"
           aria-label="Nome do local"
         />
@@ -439,7 +441,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         {locError && <span className="hint warn">{locError}</span>}
         {showMap && (
           <>
-            <SpotMap value={spot} onChange={setSpot} />
+            <SpotMap value={spot} onChange={setSpot} onPick={(label) => setSpotName((n) => n.trim() ? n : label.slice(0, 60))} />
             <span className="hint">
               {spot ? "Arraste o alfinete ou toque no mapa para ajustar." : "Toque no mapa para marcar onde pegou o peixe."} A turma toda vê o local.
             </span>

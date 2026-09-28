@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import "leaflet/dist/leaflet.css";
 
 const BRASIL = { lat: -15.8, lng: -47.9 };
 
 // Mapa do local da captura (OpenStreetMap, sem chave). Com onChange, a pessoa marca o ponto
-// tocando no mapa ou arrastando o alfinete; sem onChange, só mostra.
-export default function SpotMap({ value, onChange, height = 260 }) {
+// buscando o lugar, tocando no mapa ou arrastando o alfinete; sem onChange, só mostra.
+// onPick(nome) avisa o nome do lugar escolhido na busca.
+export default function SpotMap({ value, onChange, onPick, height = 260 }) {
   const box = useRef(null);
   const map = useRef(null);
   const pin = useRef(null);
@@ -90,5 +91,105 @@ export default function SpotMap({ value, onChange, height = 260 }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value?.lat, value?.lng]);
 
-  return <div ref={box} className="spot-map" style={{ height }} role="application" aria-label="Mapa do local da captura" />;
+  const mapBox = <div ref={box} className="spot-map" style={{ height }} role="application" aria-label="Mapa do local da captura" />;
+  if (!editable) return mapBox;
+  return (
+    <>
+      <PlaceSearch
+        near={() => {
+          const m = map.current;
+          if (!m || m.getZoom() < 7) return null;
+          const c = m.getCenter();
+          return { lat: c.lat, lng: c.lng };
+        }}
+        onSelect={(r) => {
+          change.current?.({ lat: r.lat, lng: r.lng });
+          map.current?.setView([r.lat, r.lng], 16);
+          if (r.label && r.label !== "Coordenadas") onPick?.(r.label);
+        }}
+      />
+      {mapBox}
+    </>
+  );
+}
+
+// Busca de lugar pelo nome, por link do Google Maps ou por coordenadas (via /api/local)
+function PlaceSearch({ near, onSelect }) {
+  const [q, setQ] = useState("");
+  const [state, setState] = useState(null); // {loading} | {results} | {error}
+
+  async function search() {
+    const text = q.trim();
+    if (text.length < 2) return;
+    setState({ loading: true });
+    const params = new URLSearchParams({ q: text });
+    const c = near();
+    if (c) {
+      params.set("lat", c.lat.toFixed(4));
+      params.set("lng", c.lng.toFixed(4));
+    }
+    try {
+      const res = await fetch(`/api/local?${params}`);
+      if (!res.ok) throw new Error();
+      const { results } = await res.json();
+      if (results.length === 1) {
+        onSelect(results[0]);
+        setState(null);
+      } else {
+        setState({ results });
+      }
+    } catch {
+      setState({ error: "Não deu para buscar agora. Tente de novo ou marque tocando no mapa." });
+    }
+  }
+
+  return (
+    <div className="place-search">
+      <div className="place-search-row">
+        <input
+          type="search"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter busca o lugar em vez de enviar o formulário do registro
+            if (e.key === "Enter") {
+              e.preventDefault();
+              search();
+            }
+          }}
+          placeholder="Buscar lugar, colar link do Google Maps ou coordenadas"
+          aria-label="Buscar lugar no mapa"
+          enterKeyHint="search"
+        />
+        <button type="button" className="btn small" onClick={search} disabled={state?.loading || q.trim().length < 2}>
+          {state?.loading ? "Buscando…" : "Buscar"}
+        </button>
+      </div>
+      {state?.error && <span className="hint warn">{state.error}</span>}
+      {state?.results && state.results.length === 0 && (
+        <span className="hint warn">
+          Não achei esse lugar. Tente o nome da cidade ou da represa, ou abra no Google Maps, toque em
+          Compartilhar, copie o link e cole aqui.
+        </span>
+      )}
+      {state?.results?.length > 1 && (
+        <ul className="place-results">
+          {state.results.map((r, i) => (
+            <li key={`${r.lat},${r.lng},${i}`}>
+              <button
+                type="button"
+                onClick={() => {
+                  onSelect(r);
+                  setState(null);
+                }}
+              >
+                <b>{r.label}</b>
+                {r.sub && <span>{r.sub}</span>}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }

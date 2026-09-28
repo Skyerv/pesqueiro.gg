@@ -111,7 +111,8 @@ Sem o token, a aba aparece com um aviso e o resto do site funciona normalmente.
 - **Ranking:** todo mundo com perfil, com cargo, total de peixes e a boia mostrando quanto falta para a próxima promoção. Ao subir de cargo aparece o aviso de promoção.
 - **Perfil de cada pescador:** clique em alguém no ranking para ver total, posição, espécies, dias de pesca, maior exemplar de cada espécie e todas as fotos.
 - **Mural:** todos os registros da turma, do mais novo ao mais antigo. Tocando num registro abre a página dele, com a foto inteira, as fotos e vídeos extras e o mapa do local.
-- **Registro de peixe:** foto principal, até 8 fotos ou vídeos extras (vídeos de até 50 MB) e, se quiser, o local da captura: nome do lugar e ponto no mapa (OpenStreetMap, com opção de satélite), marcado pelo GPS do celular ou tocando no mapa. A turma toda vê o local.
+- **Registro de peixe:** foto principal, até 8 fotos ou vídeos extras (vídeos de até 50 MB) e, se quiser, o local da captura: nome do lugar e ponto no mapa (OpenStreetMap, com opção de satélite), marcado pelo GPS do celular, tocando no mapa ou pela busca. A turma toda vê o local.
+- **Busca de lugar no mapa:** aceita o nome do lugar ("Pesqueiro Santo Agostinho Indaiatuba"), um link do Google Maps (no app do Google Maps: Compartilhar > Copiar link) ou coordenadas (`-23.08, -47.17`). A busca por nome usa o OpenStreetMap, que é gratuito mas não conhece todos os pesqueiros; para esses, o link do Google Maps resolve.
 - **Espécies:** quantos de cada espécie a turma (ou uma pessoa) pegou.
 - **Sugestões:** ideias da turma, que viram issues (tarefas) no GitHub.
 - **Segurança:** só quem está logado vê o site. Cada um só consegue criar, editar ou apagar os próprios registros e fotos (regras no banco, não só na tela).
@@ -143,3 +144,12 @@ Abra http://localhost:3000.
 Quando uma versão nova trouxer um arquivo em `supabase/migrations`, rode esse arquivo no **SQL Editor** do Supabase (uma vez). Instalações novas só precisam do `supabase/schema.sql`, que já inclui tudo.
 
 - `002_midias_e_local.sql`: fotos e vídeos extras por registro e local da captura.
+
+## Busca de lugares pelo Google (opcional)
+
+A busca do mapa usa o OpenStreetMap, que é gratuito mas não tem todos os pesqueiros cadastrados. Para buscar pelo Google:
+
+1. Em https://console.cloud.google.com, crie um projeto, ative a **Places API (New)** e crie uma chave em **APIs e serviços > Credenciais**. O Google pede um cartão, mas tem uma cota mensal gratuita; vale restringir a chave só à Places API e definir um limite de uso.
+2. Na Vercel, adicione `GOOGLE_MAPS_API_KEY` com a chave e faça **Redeploy**.
+
+Outra opção, gratuita e boa para a comunidade: cadastrar o pesqueiro que falta em https://www.openstreetmap.org (botão **Editar**). Em alguns dias ele passa a aparecer na busca.
