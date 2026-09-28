@@ -32,6 +32,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
   const aiRun = useRef(0);
+  const fileRef = useRef(null);
   const currentPhoto = photoUrl(item?.photo_path);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
@@ -69,8 +70,9 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
     }
   }
 
-  // Na edição: roda a IA na foto que já está salva
-  async function identifyCurrent() {
+  // Só roda quando a pessoa pede: na foto escolhida agora ou, na edição, na que já está salva
+  async function analyze() {
+    if (fileRef.current) return identify(fileRef.current);
     try {
       const res = await fetch(currentPhoto);
       if (!res.ok) throw new Error();
@@ -82,16 +84,16 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
 
   function onPhoto(e) {
     const f = e.target.files?.[0];
+    fileRef.current = f ?? null;
     setPreview(f ? URL.createObjectURL(f) : null);
-    if (f) identify(f);
-    else {
-      aiRun.current++;
-      setAi(null);
-    }
+    // Foto nova: a análise anterior não vale mais
+    aiRun.current++;
+    setAi(null);
   }
 
   async function onSubmit(e) {
     e.preventDefault();
+    aiRun.current++; // registrou sem esperar a IA: ignora a análise em andamento
     setError(null);
     const form = new FormData(e.currentTarget);
     const name = species === "__outra" ? other.trim().replace(/\s+/g, " ") : species;
@@ -138,6 +140,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
       router.refresh();
     } catch (err) {
       setStatus(null);
+      setAi((a) => (a?.state === "loading" ? null : a));
       setError(
         err.message === "foto"
           ? "Não deu para enviar a foto. Tente uma imagem JPG ou PNG menor."
@@ -161,14 +164,13 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
         <label htmlFor="photo">Foto</label>
         <input id="photo" name="photo" type="file" accept="image/*" onChange={onPhoto} />
         <span className="hint">
-          {item
-            ? "Opcional. Escolha uma foto só se quiser trocar a atual."
-            : "Mande a foto primeiro: a IA tenta descobrir a espécie pra você."}
+          {item ? "Opcional. Escolha uma foto só se quiser trocar a atual." : "Opcional."}
+          {aiEnabled && " Com a foto, você pode pedir para a IA verificar a espécie."}
         </span>
         {(preview || currentPhoto) && <img className="preview" src={preview || currentPhoto} alt={preview ? "Prévia da nova foto" : "Foto atual"} />}
-        {aiEnabled && currentPhoto && !preview && (
-          <button type="button" className="btn ghost small ai-again" onClick={identifyCurrent} disabled={ai?.state === "loading"}>
-            Analisar a foto atual com a IA
+        {aiEnabled && (preview || currentPhoto) && (
+          <button type="button" className="btn ghost small ai-again" onClick={analyze} disabled={ai?.state === "loading"}>
+            {ai?.state === "loading" ? "IA analisando…" : "IA verificar"}
           </button>
         )}
       </div>
@@ -257,8 +259,8 @@ export default function RegisterForm({ userId, currentTotal, item = null, aiEnab
       {error && <p className="notice error" role="alert">{error}</p>}
       <div className="actions">
         <button type="button" className="btn ghost" onClick={() => router.back()} disabled={busy}>Cancelar</button>
-        <button type="submit" className="btn" disabled={busy || ai?.state === "loading"}>
-          {status || (ai?.state === "loading" ? "Aguarde a análise…" : item ? "Salvar alterações" : "Registrar")}
+        <button type="submit" className="btn" disabled={busy}>
+          {status || (item ? "Salvar alterações" : "Registrar")}
         </button>
       </div>
     </form>

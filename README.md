@@ -70,7 +70,7 @@ Pronto. Mande o link do site (e o código de convite, se usar) para a turma.
 
 ## Passo 5 (opcional): identificação de espécie por IA
 
-Quando alguém escolhe a foto na tela de registro, o site manda a imagem para uma IA, que mostra a **possível espécie**, o nome científico, a confiança estimada (em %), até 3 alternativas, as características que usou para identificar e um aviso quando a foto atrapalha. Com confiança de 50% ou mais a espécie já vem preenchida; abaixo disso aparece só como sugestão. Em qualquer caso dá para trocar antes de registrar. Na tela de edição, o botão **Analisar a foto atual com a IA** roda a análise na foto que já foi enviada.
+Na tela de registro, depois de escolher a foto, a pessoa pode tocar em **IA verificar** (a análise não roda sozinha; dá para registrar direto escolhendo a espécie na mão). A IA mostra a **possível espécie**, o nome científico, a confiança estimada (em %), até 3 alternativas, as características que usou para identificar e um aviso quando a foto atrapalha. Com confiança de 50% ou mais a espécie já vem preenchida; abaixo disso aparece só como sugestão. Em qualquer caso dá para trocar antes de registrar. Na tela de edição, o mesmo botão analisa a foto que já foi enviada.
 
 Dá para usar uma de duas IAs (configure só uma):
 
