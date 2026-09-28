@@ -167,6 +167,23 @@ const VARIANTS = {
     rays: 2,
     deep: true,
   },
+  dicas: {
+    swimmers: [
+      ...school(20, -1, 0.2, 6, "c"),
+      f(34, 58, 1, 11, 0.35, "b", 0.5, "redondo"),
+      f(50, 90, -1, 6, 0.2, "a", 0.8, "tartaruga"),
+      f(66, 80, 1, 9, 0.3, "b", 0.1, "bagre"),
+      f(80, 34, -1, 20, 0.6, "a", 0.4),
+    ],
+    bubbles: 14,
+    trails: [24, 70],
+    plants: [["coral", 4, 60], ["capim", 11, 50], ["alga", 19, 110], ["pedra", 27, 0], ["kelp", 35, 170], ["coral", 58, 54], ["capim", 66, 46], ["alga", 75, 100], ["kelp", 86, 160], ["coral", 94, 58]],
+    floor: [["concha", 15], ["estrela", 40], ["concha", 62], ["estrela", 82]],
+    crabs: 2,
+    jellies: [[86, 24, 34]],
+    seahorses: [48],
+    rays: 3,
+  },
   calmo: {
     swimmers: [f(18, 40, 1, 9, 0.25, "a", 0.2), f(40, 30, -1, 12, 0.35, "b", 0.6), f(62, 70, 1, 5, 0.15, "b", 0.4, "tartaruga"), f(78, 52, 1, 7, 0.2, "a", 0.8, "redondo")],
     bubbles: 12,
@@ -184,6 +201,7 @@ function variantFor(path) {
   if (path === "/") return "ranking";
   if (path.startsWith("/mural")) return "mural";
   if (path.startsWith("/especies")) return "especies";
+  if (path.startsWith("/dicas")) return "dicas";
   if (path.startsWith("/sugestoes")) return "sugestoes";
   if (path.startsWith("/pescador")) return "pescador";
   return "calmo";

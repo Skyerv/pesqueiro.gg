@@ -547,3 +547,40 @@ fieldset.group legend { font-weight: 600; font-size: .92rem; padding: 0; margin-
   .eom-card { display: block; }
   .eom-tab, .eom-pop, .eom-backdrop { display: none; }
 }
+
+/* Menu com 5 abas: cabe no celular e, se faltar espaço, rola de lado */
+.tabs { overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs a { white-space: nowrap; }
+@media (max-width: 420px) {
+  .tabs a { padding: 10px 2px; font-size: .86rem; }
+}
+
+/* Dicas */
+.tips-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.tips-top .sub { margin: 0; }
+.tips-top .btn.small { margin-top: 0; white-space: nowrap; }
+.tips { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.tip { background: var(--surface); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; border-left: 4px solid var(--water); }
+.tip.kind-isca { border-left-color: var(--reed); }
+.tip.kind-receita { border-left-color: var(--bobber); }
+.tip.kind-tecnica { border-left-color: #f5a623; }
+.tip.kind-outro { border-left-color: var(--line); }
+.tip-main { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; padding: 14px 16px 6px; color: inherit; text-decoration: none; }
+.tip-main > :not(.tip-thumb) { grid-column: 1; }
+.tip-thumb { grid-column: 2; grid-row: 1 / span 3; width: 76px; height: 76px; object-fit: cover; border-radius: 12px; }
+.tip-kind { font-size: .75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.tip-title { font-weight: 800; font-size: 1.08rem; line-height: 1.25; overflow-wrap: anywhere; }
+.tip-main:hover .tip-title { text-decoration: underline; }
+.tip-body { font-size: .92rem; color: var(--muted); white-space: pre-line; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tip-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 16px 12px; font-size: .84rem; }
+.tip-author { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: none; color: var(--ink); }
+.tip-author small { color: var(--muted); font-weight: 400; }
+.tip-date { color: var(--muted); }
+.tip-link { margin-left: auto; font-weight: 700; text-decoration: none; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tip-detail .detail-body h2 { font-size: 1.45rem; }
+.tip-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.tip-open { align-self: flex-start; text-decoration: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kind-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.kind-pick .chip { background: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .9rem; }
+.kind-pick .chip[aria-checked="true"] { background: var(--water); border-color: var(--water); color: var(--surface); }

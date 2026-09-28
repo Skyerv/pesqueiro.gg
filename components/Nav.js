@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/", label: "Ranking" },
   { href: "/mural", label: "Mural" },
+  { href: "/dicas", label: "Dicas" },
   { href: "/especies", label: "Espécies" },
   { href: "/sugestoes", label: "Sugestões" },
 ];
@@ -15,7 +16,7 @@ export default function Nav() {
   return (
     <nav className="tabs sticky" aria-label="Seções">
       {LINKS.map((l) => (
-        <Link key={l.href} href={l.href} aria-current={path === l.href ? "page" : undefined}>
+        <Link key={l.href} href={l.href} aria-current={path === l.href || (l.href !== "/" && path.startsWith(`${l.href}/`)) ? "page" : undefined}>
           {l.label}
         </Link>
       ))}
