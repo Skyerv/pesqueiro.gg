@@ -1,4 +1,5 @@
 import Link from "next/link";
+import DeleteSuggestion from "@/components/DeleteSuggestion";
 import SuggestionForm from "@/components/SuggestionForm";
 import { getViewer } from "@/lib/data";
 import { githubReady, listSuggestions } from "@/lib/github";
@@ -12,7 +13,7 @@ const STATUS = {
 };
 
 export default async function SugestoesPage() {
-  await getViewer();
+  const { user } = await getViewer();
 
   if (!githubReady()) {
     return (
@@ -59,6 +60,7 @@ export default async function SugestoesPage() {
                 {new Date(s.createdAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}
                 {s.comments > 0 && ` · ${s.comments} comentário${s.comments > 1 ? "s" : ""}`}
               </span>
+              {s.authorId === user.id && s.status === "aberta" && <DeleteSuggestion number={s.number} />}
             </li>
           ))}
         </ul>

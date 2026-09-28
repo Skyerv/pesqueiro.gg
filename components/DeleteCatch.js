@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export default function DeleteCatch({ id, photoPath }) {
+export default function DeleteCatch({ id, photoPath, redirectTo }) {
   const router = useRouter();
   const [armed, setArmed] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,6 +28,7 @@ export default function DeleteCatch({ id, photoPath }) {
       return;
     }
     if (photoPath) await supabase.storage.from("fotos").remove([photoPath]);
+    if (redirectTo) router.replace(redirectTo);
     router.refresh();
   }
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getViewer } from "@/lib/data";
-import { createSuggestion, githubReady, listSuggestions } from "@/lib/github";
+import { createSuggestion, githubReady, listSuggestions, removeSuggestion } from "@/lib/github";
 
 const MAX_PER_DAY = 5;
 
@@ -28,6 +28,20 @@ export async function enviarSugestao(_prev, formData) {
     return { error: "Não deu para enviar agora. Tente de novo daqui a pouco.", title, details };
   }
 
+  revalidatePath("/sugestoes");
+  return { ok: true };
+}
+
+export async function removerSugestao(number) {
+  const { user } = await getViewer();
+  if (!githubReady() || !Number.isInteger(number) || number < 1) return { error: "Não deu para excluir." };
+  try {
+    await removeSuggestion(number, user.id);
+  } catch (err) {
+    if (err.message === "fechada") return { error: "Essa sugestão já foi resolvida e não pode mais ser excluída." };
+    if (err.message === "dono") return { error: "Você só pode excluir as suas sugestões." };
+    return { error: "Não deu para excluir agora. Tente de novo." };
+  }
   revalidatePath("/sugestoes");
   return { ok: true };
 }

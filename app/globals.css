@@ -200,3 +200,25 @@ textarea { resize: vertical; min-height: 64px; }
 .sugg-status.descartada { background: transparent; color: var(--muted); border: 1.5px solid var(--line); }
 .sugg-meta { grid-column: 1 / -1; font-size: .82rem; color: var(--muted); }
 .sugg-meta a { font-weight: 600; text-decoration: none; }
+.sugg-del { grid-column: 1 / -1; display: flex; flex-direction: column; }
+.sugg-del .del { padding-top: 4px; }
+
+/* Registro aberto a partir do mural */
+.catch-open { display: block; color: inherit; text-decoration: none; }
+.catch .sp { color: var(--ink); text-decoration: none; }
+.catch .sp:hover { text-decoration: underline; }
+.catch .note { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.detail { background: var(--surface); border-radius: 20px; overflow: hidden; box-shadow: var(--shadow); margin-bottom: 24px; }
+.detail-photo { display: block; background: #000; }
+.detail-photo img { display: block; width: 100%; max-height: 75vh; object-fit: contain; }
+.detail-nophoto { aspect-ratio: 16 / 9; background: var(--water-soft); display: flex; align-items: center; justify-content: center; color: var(--water); font-weight: 800; font-size: 2rem; padding: 12px; text-align: center; }
+.detail-body { padding: 18px 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.detail-body h2 { margin: 0; font-size: 1.6rem; font-weight: 800; line-height: 1.1; overflow-wrap: anywhere; }
+.detail-author { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; align-self: flex-start; }
+.detail-facts { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 0; }
+.detail-facts dt { font-size: .78rem; color: var(--muted); }
+.detail-facts dd { margin: 0; font-weight: 700; }
+.detail-note { margin: 0; font-size: 1.02rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.detail-note.muted { color: var(--muted); font-style: italic; }
+.detail-open { font-size: .88rem; font-weight: 600; align-self: flex-start; }
+.detail .del { margin-top: 0; }

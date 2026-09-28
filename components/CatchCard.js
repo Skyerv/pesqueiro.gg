@@ -5,19 +5,22 @@ import DeleteCatch from "./DeleteCatch";
 export default function CatchCard({ item, author, showAuthor, canDelete }) {
   const url = photoUrl(item.photo_path);
   const name = author?.nickname || "Pescador";
+  const href = `/registro/${item.id}`;
   return (
     <article className="catch">
-      {url ? (
-        <img src={url} alt={`${item.species} de ${name}`} loading="lazy" />
-      ) : (
-        <div className="nophoto">{item.species}</div>
-      )}
+      <Link href={href} className="catch-open" tabIndex={-1} aria-hidden="true">
+        {url ? (
+          <img src={url} alt="" loading="lazy" />
+        ) : (
+          <div className="nophoto">{item.species}</div>
+        )}
+      </Link>
       <div className="body">
-        <div className="sp">
+        <Link href={href} className="sp">
           {item.qty > 1 ? `${item.qty}× ` : ""}
           {item.species}
           {item.size_cm ? ` · ${item.size_cm} cm` : ""}
-        </div>
+        </Link>
         <div className="meta">
           {showAuthor && (
             <>
