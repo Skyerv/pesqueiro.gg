@@ -442,3 +442,10 @@ fieldset.group legend { font-weight: 600; font-size: .92rem; padding: 0; margin-
 .place-results button:hover, .place-results button:focus-visible { background: var(--water-soft); }
 .place-results b { font-weight: 700; }
 .place-results span { font-size: .82rem; color: var(--muted); }
+.media-pick .cover-btn {
+  top: auto; right: auto; left: 4px; bottom: 4px; min-width: 0; height: 22px; padding: 0 7px;
+  font-size: .7rem; font-weight: 700;
+}
+.media-pick .cover-btn[aria-pressed="true"] { background: var(--bobber); }
+.media-pick li.cover { outline: 3px solid var(--bobber); outline-offset: -3px; }
+.media-pick li:has(.media-tag) .cover-btn { left: 24px; }

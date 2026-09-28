@@ -43,6 +43,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState(null);
   const [spotName, setSpotName] = useState(item?.spot_name ?? "");
+  const [cover, setCover] = useState(null); // foto extra escolhida como capa: {saved: id} ou {extra: key}
   const aiRun = useRef(0);
   const fileRef = useRef(null);
   const currentPhoto = photoUrl(item?.photo_path);
@@ -107,6 +108,19 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
   const keptMedia = media.filter((m) => !removed.has(m.id));
   const slotsLeft = MAX_EXTRA - keptMedia.length - extras.length;
 
+  // Foto extra que vai virar a capa do mural ("s:id" salva, "n:key" nova): a marcada pela pessoa ou,
+  // se o registro não tem capa, a primeira foto. Com uma foto principal nova escolhida, nenhuma.
+  const coverId = (() => {
+    if (preview) return null;
+    if (cover?.saved && keptMedia.some((m) => m.id === cover.saved)) return `s:${cover.saved}`;
+    if (cover?.extra && extras.some((x) => x.key === cover.extra)) return `n:${cover.extra}`;
+    if (item?.photo_path) return null;
+    const saved = keptMedia.find((m) => m.kind === "image");
+    if (saved) return `s:${saved.id}`;
+    const fresh = extras.find((x) => x.kind === "image");
+    return fresh ? `n:${fresh.key}` : null;
+  })();
+
   function onExtras(e) {
     const files = [...(e.target.files ?? [])];
     e.target.value = "";
@@ -164,18 +178,26 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
     );
   }
 
-  // Envia as mídias novas e apaga as removidas; devolve quantas falharam
-  async function syncMedia(supabase, catchId) {
+  // Envia as mídias novas e apaga as removidas; devolve quantas falharam.
+  // promoted: mídia salva que virou capa (sai da lista, o arquivo fica); demoted: capa antiga que virou extra.
+  async function syncMedia(supabase, catchId, toUpload, promoted, demoted) {
     const gone = media.filter((m) => removed.has(m.id));
     if (gone.length) {
       const { error: delErr } = await supabase.from("catch_media").delete().in("id", gone.map((m) => m.id));
       if (!delErr) await supabase.storage.from("fotos").remove(gone.map((m) => m.path));
     }
+    if (promoted) await supabase.from("catch_media").delete().eq("id", promoted.id);
 
     let failed = 0;
     let position = Math.max(-1, ...media.map((m) => m.position ?? 0)) + 1;
-    for (const [i, x] of extras.entries()) {
-      setStatus(`Enviando ${x.kind === "video" ? "vídeo" : "foto"} ${i + 1} de ${extras.length}…`);
+    if (demoted) {
+      const { error: demErr } = await supabase
+        .from("catch_media")
+        .insert({ catch_id: catchId, user_id: userId, path: demoted, kind: "image", position: position++ });
+      if (demErr) failed++;
+    }
+    for (const [i, x] of toUpload.entries()) {
+      setStatus(`Enviando ${x.kind === "video" ? "vídeo" : "foto"} ${i + 1} de ${toUpload.length}…`);
       try {
         const { blob, type, ext } =
           x.kind === "image"
@@ -210,12 +232,21 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
     const file = form.get("photo");
     const spotLabel = spotName.trim().replace(/\s+/g, " ").slice(0, 60) || null;
 
+    // Qual foto vira a capa (a do mural): a principal escolhida agora > a extra marcada como capa >
+    // a capa atual > a primeira foto extra, quando o registro não tem capa nenhuma
+    const mainFile = file && file.size > 0 ? file : null;
+    const coverSaved = !mainFile && coverId?.startsWith("s:") ? keptMedia.find((m) => `s:${m.id}` === coverId) ?? null : null;
+    const coverExtra = !mainFile && coverId?.startsWith("n:") ? extras.find((x) => `n:${x.key}` === coverId) ?? null : null;
+    const coverFile = mainFile ?? coverExtra?.file ?? null;
+    // Trocou a capa por uma foto extra: a capa antiga não é apagada, vira foto extra
+    const demoted = (coverSaved || coverExtra) && item?.photo_path ? item.photo_path : null;
+
     const supabase = createClient();
     let newPhoto = null;
     try {
-      if (file && file.size > 0) {
+      if (coverFile) {
         setStatus("Enviando foto…");
-        const { blob, type, ext } = await compressImage(file);
+        const { blob, type, ext } = await compressImage(coverFile);
         newPhoto = `${userId}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
           .from("fotos")
@@ -229,7 +260,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         size_cm: size,
         caught_on: form.get("date") || today(),
         note: String(form.get("note") || "").trim().slice(0, 140) || null,
-        photo_path: newPhoto ?? item?.photo_path ?? null,
+        photo_path: newPhoto ?? coverSaved?.path ?? item?.photo_path ?? null,
         spot_name: spotLabel,
         lat: spot?.lat ?? null,
         lng: spot?.lng ?? null,
@@ -241,11 +272,11 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         if (newPhoto) await supabase.storage.from("fotos").remove([newPhoto]);
         throw new Error("db");
       }
-      // Trocou a foto: a antiga não é mais usada
-      if (item?.photo_path && newPhoto) await supabase.storage.from("fotos").remove([item.photo_path]);
+      // Escolheu outra foto principal: a antiga não é mais usada
+      if (item?.photo_path && mainFile && newPhoto) await supabase.storage.from("fotos").remove([item.photo_path]);
 
       const catchId = saved[0].id;
-      const failed = await syncMedia(supabase, catchId);
+      const failed = await syncMedia(supabase, catchId, extras.filter((x) => x !== coverExtra), coverSaved, demoted);
 
       const before = rankFor(currentTotal);
       const after = rankFor(currentTotal - (item?.qty ?? 0) + qty);
@@ -381,23 +412,37 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
           <ul className="media-pick">
             {media.map((m) => {
               const gone = removed.has(m.id);
+              const isCover = !gone && coverId === `s:${m.id}`;
               return (
-                <li key={m.id} className={gone ? "gone" : ""}>
+                <li key={m.id} className={`${gone ? "gone" : ""}${isCover ? " cover" : ""}`}>
                   {m.kind === "video" ? <video src={photoUrl(m.path)} muted playsInline preload="metadata" /> : <img src={photoUrl(m.path)} alt="" />}
                   {m.kind === "video" && <span className="media-tag">▶</span>}
                   <button type="button" onClick={() => toggleSaved(m.id)} aria-label={gone ? "Manter" : "Remover"}>
                     {gone ? "Manter" : "×"}
                   </button>
+                  {m.kind === "image" && !gone && !preview && (
+                    <button type="button" className="cover-btn" aria-pressed={isCover} onClick={() => setCover(isCover ? null : { saved: m.id })}>
+                      {isCover ? "★ Capa" : "Usar como capa"}
+                    </button>
+                  )}
                 </li>
               );
             })}
-            {extras.map((x) => (
-              <li key={x.key} className="new">
-                {x.kind === "video" ? <video src={x.url} muted playsInline preload="metadata" /> : <img src={x.url} alt="" />}
-                {x.kind === "video" && <span className="media-tag">▶</span>}
-                <button type="button" onClick={() => dropExtra(x.key)} aria-label="Remover">×</button>
-              </li>
-            ))}
+            {extras.map((x) => {
+              const isCover = coverId === `n:${x.key}`;
+              return (
+                <li key={x.key} className={`new${isCover ? " cover" : ""}`}>
+                  {x.kind === "video" ? <video src={x.url} muted playsInline preload="metadata" /> : <img src={x.url} alt="" />}
+                  {x.kind === "video" && <span className="media-tag">▶</span>}
+                  <button type="button" onClick={() => dropExtra(x.key)} aria-label="Remover">×</button>
+                  {x.kind === "image" && !preview && (
+                    <button type="button" className="cover-btn" aria-pressed={isCover} onClick={() => setCover(isCover ? null : { extra: x.key })}>
+                      {isCover ? "★ Capa" : "Usar como capa"}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
         {slotsLeft > 0 && (
@@ -408,6 +453,7 @@ export default function RegisterForm({ userId, currentTotal, item = null, media 
         )}
         <span className="hint">
           Opcional. Até {MAX_EXTRA} por registro; vídeos de até {MAX_VIDEO_MB} MB (MP4, MOV ou WEBM).
+          {!preview && " A foto marcada como capa é a que aparece no mural."}
           {removed.size > 0 && " Os marcados como removidos são apagados ao salvar."}
         </span>
       </fieldset>

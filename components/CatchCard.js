@@ -3,7 +3,7 @@ import { formatDate, photoUrl } from "@/lib/stats";
 import DeleteCatch from "./DeleteCatch";
 
 export default function CatchCard({ item, author, showAuthor, canDelete }) {
-  const url = photoUrl(item.photo_path);
+  const url = photoUrl(item.photo_path || item.cover_path);
   const name = author?.nickname || "Pescador";
   const href = `/registro/${item.id}`;
   return (

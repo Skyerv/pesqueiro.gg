@@ -30,7 +30,10 @@ export default async function RegistroPage({ params, searchParams }) {
   ]);
   const hasSpot = item.lat != null && item.lng != null;
 
-  const url = photoUrl(item.photo_path);
+  // Sem foto principal: a primeira foto extra vira a capa (e sai da galeria)
+  const coverMedia = item.photo_path ? null : (media ?? []).find((m) => m.kind === "image") ?? null;
+  const gallery = (media ?? []).filter((m) => m !== coverMedia);
+  const url = photoUrl(item.photo_path || coverMedia?.path);
   const name = author?.nickname || "Pescador";
   const isMine = item.user_id === user.id;
 
@@ -68,11 +71,11 @@ export default async function RegistroPage({ params, searchParams }) {
           {item.note ? <p className="detail-note">{item.note}</p> : <p className="detail-note muted">Sem descrição.</p>}
           {url && <a href={url} target="_blank" rel="noopener" className="detail-open">Abrir foto em tamanho real</a>}
 
-          {media?.length > 0 && (
+          {gallery.length > 0 && (
             <section className="detail-section">
               <h3 className="sec">Mais fotos e vídeos</h3>
               <ul className="gallery">
-                {media.map((m) => {
+                {gallery.map((m) => {
                   const src = photoUrl(m.path);
                   return (
                     <li key={m.id} className={m.kind}>
