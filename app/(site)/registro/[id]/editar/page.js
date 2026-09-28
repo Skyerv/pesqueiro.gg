@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import RegisterForm from "@/components/RegisterForm";
 import { getViewer } from "@/lib/data";
+import { aiProvider } from "@/lib/ai";
 
 export const metadata = { title: "Editar registro | Pesqueiro.GG" };
 
@@ -20,5 +21,5 @@ export default async function EditarRegistroPage({ params }) {
   if (!item) notFound();
 
   const total = mine.reduce((sum, c) => sum + c.qty, 0);
-  return <RegisterForm userId={user.id} currentTotal={total} item={item} />;
+  return <RegisterForm userId={user.id} currentTotal={total} item={item} aiEnabled={Boolean(aiProvider())} />;
 }

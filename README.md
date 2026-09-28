@@ -70,12 +70,25 @@ Pronto. Mande o link do site (e o código de convite, se usar) para a turma.
 
 ## Passo 5 (opcional): identificação de espécie por IA
 
-Quando alguém escolhe a foto na tela de registro, o site manda a imagem para o Claude (IA da Anthropic), que sugere a espécie. Com confiança alta ou média a espécie já vem preenchida; com confiança baixa aparece só como sugestão. Em qualquer caso dá para trocar antes de registrar.
+Quando alguém escolhe a foto na tela de registro, o site manda a imagem para uma IA, que mostra a **possível espécie**, o nome científico, a confiança estimada (em %), até 3 alternativas, as características que usou para identificar e um aviso quando a foto atrapalha. Com confiança de 50% ou mais a espécie já vem preenchida; abaixo disso aparece só como sugestão. Em qualquer caso dá para trocar antes de registrar. Na tela de edição, o botão **Analisar a foto atual com a IA** roda a análise na foto que já foi enviada.
+
+Dá para usar uma de duas IAs (configure só uma):
+
+**Gemini, do Google (tem plano gratuito, bom para começar)**
+
+1. Entre em https://aistudio.google.com/apikey com uma conta Google e clique em **Create API key**.
+2. Na Vercel, em **Settings > Environment Variables**, adicione `GEMINI_API_KEY` com a chave e faça **Redeploy**.
+
+O modelo padrão é o Gemini 3.5 Flash-Lite. No plano gratuito não há cobrança, mas há um limite de análises por minuto e por dia (veja em https://aistudio.google.com/rate-limit). Quando o limite acaba, o site avisa e a pessoa escolhe a espécie na mão. Atenção: no plano gratuito, o Google pode usar as fotos enviadas para melhorar os produtos dele (https://ai.google.dev/gemini-api/terms).
+
+**Claude, da Anthropic (pago por uso)**
 
 1. Crie uma conta em https://console.anthropic.com, adicione créditos em **Billing** e gere uma chave em **API Keys**.
 2. Na Vercel, em **Settings > Environment Variables**, adicione `ANTHROPIC_API_KEY` com a chave e faça **Redeploy**.
 
-O modelo padrão é o Claude Haiku 4.5, o mais barato, e cada foto analisada custa uma fração de centavo de dólar (preços em https://www.anthropic.com/pricing). Para acompanhar o gasto e colocar um limite mensal, use **Billing > Limits** no console. Sem a chave, o site funciona normalmente, só sem a sugestão.
+O modelo padrão é o Claude Haiku 4.5, o mais barato, e cada foto analisada custa uma fração de centavo de dólar (preços em https://www.anthropic.com/pricing). Para acompanhar o gasto e colocar um limite mensal, use **Billing > Limits** no console.
+
+Com as duas chaves configuradas, o site usa o Gemini; para escolher, defina `AI_PROVIDER` como `gemini` ou `anthropic`. Sem nenhuma chave, o site funciona normalmente, só sem a sugestão.
 
 A análise só roda para quem está logado. A IA acerta bem espécies comuns em fotos nítidas com o peixe inteiro de lado, e erra mais com peixes parecidos entre si, fotos escuras ou com o peixe coberto pela mão.
 

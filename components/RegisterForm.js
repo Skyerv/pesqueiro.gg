@@ -22,7 +22,7 @@ function initialSpecies(name) {
 
 const CONF_LABEL = { alta: "confiança alta", media: "confiança média", baixa: "confiança baixa" };
 
-export default function RegisterForm({ userId, currentTotal, item = null }) {
+export default function RegisterForm({ userId, currentTotal, item = null, aiEnabled = false }) {
   const initial = item ? initialSpecies(item.species) : { species: SPECIES[0], other: "" };
   const router = useRouter();
   const [species, setSpecies] = useState(initial.species);
@@ -32,6 +32,7 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
   const aiRun = useRef(0);
+  const currentPhoto = photoUrl(item?.photo_path);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
@@ -51,6 +52,7 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
       const res = await fetch("/api/identificar", { method: "POST", body: fd });
       if (run !== aiRun.current) return;
       if (res.status === 503) return setAi(null); // IA não configurada: some sem alarde
+      if (res.status === 429) return setAi({ state: "limit" });
       if (!res.ok) throw new Error();
       const result = await res.json();
       if (run !== aiRun.current) return;
@@ -59,6 +61,17 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
       setAi({ state: "done", result });
     } catch {
       if (run === aiRun.current) setAi({ state: "error" });
+    }
+  }
+
+  // Na edição: roda a IA na foto que já está salva
+  async function identifyCurrent() {
+    try {
+      const res = await fetch(currentPhoto);
+      if (!res.ok) throw new Error();
+      identify(await res.blob());
+    } catch {
+      setAi({ state: "error" });
     }
   }
 
@@ -132,7 +145,6 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
 
   const busy = Boolean(status);
   const r = ai?.result;
-  const currentPhoto = photoUrl(item?.photo_path);
   const chosen = species === "__outra" ? other : species;
   const suggestions = r ? [r.species, ...r.alternatives].filter((s, i, a) => s && a.findIndex((x) => norm(x) === norm(s)) === i) : [];
 
@@ -149,6 +161,11 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
             : "Mande a foto primeiro: a IA tenta descobrir a espécie pra você."}
         </span>
         {(preview || currentPhoto) && <img className="preview" src={preview || currentPhoto} alt={preview ? "Prévia da nova foto" : "Foto atual"} />}
+        {aiEnabled && currentPhoto && !preview && (
+          <button type="button" className="btn ghost small ai-again" onClick={identifyCurrent} disabled={ai?.state === "loading"}>
+            Analisar a foto atual com a IA
+          </button>
+        )}
       </div>
 
       {ai && (
@@ -156,13 +173,27 @@ export default function RegisterForm({ userId, currentTotal, item = null }) {
           {ai.state === "loading" && <p>Analisando a foto…</p>}
           {ai.state === "error" && <p>Não deu para analisar a foto agora. Escolha a espécie abaixo.</p>}
           {ai.state === "nofish" && <p>A IA não encontrou um peixe nessa foto. Escolha a espécie abaixo.</p>}
+          {ai.state === "limit" && <p>A IA atingiu o limite de análises por agora. Escolha a espécie abaixo ou tente mais tarde.</p>}
           {ai.state === "done" && r && (
             <>
               <p>
-                {r.confidence === "baixa" ? "Talvez seja" : "Parece ser"}: <strong>{r.species}</strong>{" "}
-                <span className="ai-conf">({CONF_LABEL[r.confidence]})</span>
+                Possível espécie: <strong>{r.species}</strong>
+                {r.scientificName && <> <em className="ai-sci">{r.scientificName}</em></>}
               </p>
-              {r.note && <p className="ai-note">{r.note}</p>}
+              <p className="ai-conf">
+                Confiança estimada: {r.confidencePct}% ({CONF_LABEL[r.confidence]})
+              </p>
+              <div className="ai-meter" aria-hidden="true"><i style={{ width: `${r.confidencePct}%` }} /></div>
+              {r.warning && <p className="ai-warn">⚠️ {r.warning}</p>}
+              {r.traits?.length > 0 && (
+                <>
+                  <p className="ai-note">Características observadas:</p>
+                  <ul className="ai-traits">
+                    {r.traits.map((t) => <li key={t}>{t}</li>)}
+                  </ul>
+                </>
+              )}
+              {suggestions.length > 1 && <p className="ai-note">Toque para escolher (a primeira é a mais provável):</p>}
               <div className="ai-options">
                 {suggestions.map((s) => (
                   <button

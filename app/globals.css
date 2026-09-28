@@ -229,3 +229,11 @@ textarea { resize: vertical; min-height: 64px; }
 .detail-owner .btn.small { margin-top: 0; text-decoration: none; }
 .detail-owner .del { padding-top: 0; }
 .detail-owner .del-error { flex-basis: 100%; }
+.ai-sci { color: var(--muted); font-size: .88rem; }
+.ai-conf { margin-top: 4px !important; }
+.ai-meter { height: 6px; border-radius: 3px; background: var(--surface); overflow: hidden; margin: 6px 0 2px; max-width: 240px; }
+.ai-meter i { display: block; height: 100%; background: var(--water); border-radius: 3px; }
+.ai-warn { margin-top: 8px !important; font-size: .88rem; color: var(--bobber); }
+.ai-traits { margin: 4px 0 0; padding-left: 1.2em; font-size: .88rem; }
+.ai-traits li { margin: 2px 0; }
+.ai-again { margin-top: 8px; align-self: flex-start; }
