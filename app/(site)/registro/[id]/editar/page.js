@@ -14,12 +14,20 @@ export default async function EditarRegistroPage({ params }) {
   const { supabase, user } = await getViewer();
   const { data: mine } = await supabase
     .from("catches")
-    .select("id, species, qty, size_cm, caught_on, note, photo_path")
+    .select("id, species, qty, size_cm, caught_on, note, photo_path, spot_name, lat, lng")
     .eq("user_id", user.id);
   const item = (mine ?? []).find((c) => c.id === id);
   // Registro de outra pessoa (ou apagado): trata como inexistente
   if (!item) notFound();
 
+  const { data: media } = await supabase
+    .from("catch_media")
+    .select("id, path, kind, position")
+    .eq("catch_id", item.id)
+    .order("position");
+
   const total = mine.reduce((sum, c) => sum + c.qty, 0);
-  return <RegisterForm userId={user.id} currentTotal={total} item={item} aiEnabled={Boolean(aiProvider())} />;
+  return (
+    <RegisterForm userId={user.id} currentTotal={total} item={item} media={media ?? []} aiEnabled={Boolean(aiProvider())} />
+  );
 }

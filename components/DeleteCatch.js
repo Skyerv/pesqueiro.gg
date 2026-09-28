@@ -21,13 +21,16 @@ export default function DeleteCatch({ id, photoPath, redirectTo }) {
     setBusy(true);
     setError(null);
     const supabase = createClient();
+    // Guarda os arquivos extras antes: a exclusão do registro apaga as linhas em cascata
+    const { data: media } = await supabase.from("catch_media").select("path").eq("catch_id", id);
     const { error } = await supabase.from("catches").delete().eq("id", id);
     if (error) {
       setBusy(false);
       setError("Não deu para excluir. Tente de novo.");
       return;
     }
-    if (photoPath) await supabase.storage.from("fotos").remove([photoPath]);
+    const files = [photoPath, ...(media ?? []).map((m) => m.path)].filter(Boolean);
+    if (files.length) await supabase.storage.from("fotos").remove(files);
     if (redirectTo) router.replace(redirectTo);
     router.refresh();
   }

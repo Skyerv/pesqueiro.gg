@@ -2,30 +2,33 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import Avatar from "@/components/Avatar";
 import DeleteCatch from "@/components/DeleteCatch";
+import SpotMap from "@/components/SpotMap";
 import { getViewer } from "@/lib/data";
+import { mapsLink } from "@/lib/media";
 import { formatDate, photoUrl } from "@/lib/stats";
 
 export const metadata = { title: "Registro | Pesqueiro.GG" };
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export default async function RegistroPage({ params }) {
+export default async function RegistroPage({ params, searchParams }) {
   const { id } = await params;
+  const failed = Number((await searchParams)?.midia) || 0;
   if (!UUID.test(id)) notFound();
 
   const { supabase, user } = await getViewer();
   const { data: item } = await supabase
     .from("catches")
-    .select("id, user_id, species, qty, size_cm, caught_on, note, photo_path, created_at")
+    .select("id, user_id, species, qty, size_cm, caught_on, note, photo_path, spot_name, lat, lng, created_at")
     .eq("id", id)
     .maybeSingle();
   if (!item) notFound();
 
-  const { data: author } = await supabase
-    .from("profiles")
-    .select("id, nickname, avatar_path")
-    .eq("id", item.user_id)
-    .maybeSingle();
+  const [{ data: author }, { data: media }] = await Promise.all([
+    supabase.from("profiles").select("id, nickname, avatar_path").eq("id", item.user_id).maybeSingle(),
+    supabase.from("catch_media").select("id, path, kind").eq("catch_id", item.id).order("position"),
+  ]);
+  const hasSpot = item.lat != null && item.lng != null;
 
   const url = photoUrl(item.photo_path);
   const name = author?.nickname || "Pescador";
@@ -34,6 +37,12 @@ export default async function RegistroPage({ params }) {
   return (
     <>
       <Link href="/mural" className="back">← Voltar ao mural</Link>
+      {failed > 0 && isMine && (
+        <p className="notice error" role="alert">
+          O registro foi salvo, mas {failed === 1 ? "1 foto ou vídeo não foi enviado" : `${failed} fotos ou vídeos não foram enviados`}.
+          Toque em Editar registro para tentar de novo.
+        </p>
+      )}
       <article className="detail">
         {url ? (
           <a href={url} target="_blank" rel="noopener" className="detail-photo" title="Abrir a foto em tamanho real">
@@ -58,6 +67,44 @@ export default async function RegistroPage({ params }) {
           </dl>
           {item.note ? <p className="detail-note">{item.note}</p> : <p className="detail-note muted">Sem descrição.</p>}
           {url && <a href={url} target="_blank" rel="noopener" className="detail-open">Abrir foto em tamanho real</a>}
+
+          {media?.length > 0 && (
+            <section className="detail-section">
+              <h3 className="sec">Mais fotos e vídeos</h3>
+              <ul className="gallery">
+                {media.map((m) => {
+                  const src = photoUrl(m.path);
+                  return (
+                    <li key={m.id} className={m.kind}>
+                      {m.kind === "video" ? (
+                        <video src={src} controls playsInline preload="metadata" />
+                      ) : (
+                        <a href={src} target="_blank" rel="noopener" title="Abrir em tamanho real">
+                          <img src={src} alt={`Foto extra de ${item.species}`} loading="lazy" />
+                        </a>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
+          {(hasSpot || item.spot_name) && (
+            <section className="detail-section">
+              <h3 className="sec">Local da captura</h3>
+              {item.spot_name && <p className="spot-name">📍 {item.spot_name}</p>}
+              {hasSpot && (
+                <>
+                  <SpotMap value={{ lat: item.lat, lng: item.lng }} height={240} />
+                  <a href={mapsLink(item.lat, item.lng)} target="_blank" rel="noopener" className="detail-open">
+                    Abrir no Google Maps
+                  </a>
+                </>
+              )}
+            </section>
+          )}
+
           {isMine && (
             <div className="detail-owner">
               <Link href={`/registro/${item.id}/editar`} className="btn ghost small">Editar registro</Link>

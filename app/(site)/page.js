@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Avatar from "@/components/Avatar";
 import FishLine from "@/components/FishLine";
+import SeaScene from "@/components/SeaScene";
 import { getBoard, getViewer } from "@/lib/data";
 import { RANKS, rankFor } from "@/lib/ranks";
 import { buildStats } from "@/lib/stats";
@@ -14,6 +15,7 @@ export default async function RankingPage({ searchParams }) {
 
   return (
     <>
+      <SeaScene />
       {promo && (
         <div className="promo-banner" role="status">
           <p>Parabéns, você foi promovido a</p>

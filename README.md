@@ -110,7 +110,8 @@ Sem o token, a aba aparece com um aviso e o resto do site funciona normalmente.
 - **Criar conta:** e-mail + senha. A pessoa recebe um e-mail de confirmação e, ao entrar pela primeira vez, cria o perfil com apelido e foto.
 - **Ranking:** todo mundo com perfil, com cargo, total de peixes e a boia mostrando quanto falta para a próxima promoção. Ao subir de cargo aparece o aviso de promoção.
 - **Perfil de cada pescador:** clique em alguém no ranking para ver total, posição, espécies, dias de pesca, maior exemplar de cada espécie e todas as fotos.
-- **Mural:** todos os registros da turma, do mais novo ao mais antigo.
+- **Mural:** todos os registros da turma, do mais novo ao mais antigo. Tocando num registro abre a página dele, com a foto inteira, as fotos e vídeos extras e o mapa do local.
+- **Registro de peixe:** foto principal, até 8 fotos ou vídeos extras (vídeos de até 50 MB) e, se quiser, o local da captura: nome do lugar e ponto no mapa (OpenStreetMap, com opção de satélite), marcado pelo GPS do celular ou tocando no mapa. A turma toda vê o local.
 - **Espécies:** quantos de cada espécie a turma (ou uma pessoa) pegou.
 - **Sugestões:** ideias da turma, que viram issues (tarefas) no GitHub.
 - **Segurança:** só quem está logado vê o site. Cada um só consegue criar, editar ou apagar os próprios registros e fotos (regras no banco, não só na tela).
@@ -136,3 +137,9 @@ Abra http://localhost:3000.
 - **Fotos:** ficam no bucket `fotos` do Supabase e são reduzidas no navegador antes do envio. O site só mostra para quem está logado, mas quem tiver o endereço exato de uma foto consegue abri-la.
 - **Código de convite:** é uma barreira simples para estranhos com o link. Para travar de vez, depois que a turma toda se cadastrar, desligue novos cadastros em **Authentication > Sign In / Providers > Allow new users to sign up**.
 - **Plano gratuito do Supabase:** projetos sem acesso por 7 dias podem ser pausados. É só entrar no painel e clicar em **Restore**.
+
+## Atualizando o banco
+
+Quando uma versão nova trouxer um arquivo em `supabase/migrations`, rode esse arquivo no **SQL Editor** do Supabase (uma vez). Instalações novas só precisam do `supabase/schema.sql`, que já inclui tudo.
+
+- `002_midias_e_local.sql`: fotos e vídeos extras por registro e local da captura.
